@@ -3,12 +3,16 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { ContentItem, ContentStats, ContentStatus } from "@/types/content";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
+import { fetchAllContentItems, addContentItem as addContentItemToDb, updateContentItem as updateContentItemInDb, deleteContentItem as deleteContentItemFromDb } from "@/services/contentService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ContentContextType {
   contentItems: ContentItem[];
-  addContentItem: (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist">) => void;
-  updateContentItem: (id: string, updates: Partial<ContentItem>) => void;
-  deleteContentItem: (id: string) => void;
+  isLoading: boolean;
+  error: Error | null;
+  addContentItem: (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist">) => Promise<string>;
+  updateContentItem: (id: string, updates: Partial<ContentItem>) => Promise<void>;
+  deleteContentItem: (id: string) => Promise<void>;
   getContentStats: () => ContentStats;
   getContentByStatus: (status: ContentStatus) => ContentItem[];
   exportToCSV: () => void;
@@ -20,65 +24,154 @@ const ContentContext = createContext<ContentContextType | undefined>(undefined);
 const STORAGE_KEY = "content-flow-data";
 
 export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [contentItems, setContentItems] = useState<ContentItem[]>(() => {
-    const savedItems = localStorage.getItem(STORAGE_KEY);
-    if (savedItems) {
-      try {
-        // Parse the dates properly
-        const parsed = JSON.parse(savedItems);
-        return parsed.map((item: any) => ({
-          ...item,
-          createdAt: new Date(item.createdAt),
-          updatedAt: new Date(item.updatedAt),
-          publicationDate: item.publicationDate ? new Date(item.publicationDate) : undefined
-        }));
-      } catch (e) {
-        console.error("Error parsing saved content:", e);
-        return [];
-      }
-    }
-    return [];
-  });
+  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Save to localStorage whenever content changes
+  // Initialize with data from Supabase
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(contentItems));
-  }, [contentItems]);
-
-  const addContentItem = (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist">) => {
-    const now = new Date();
-    const newItem: ContentItem = {
-      ...item,
-      id: uuidv4(),
-      createdAt: now,
-      updatedAt: now,
-      contentChecklist: {
-        intro: false,
-        mainPoints: false,
-        callToAction: false,
-        outro: false
+    const loadContentItems = async () => {
+      try {
+        setIsLoading(true);
+        const items = await fetchAllContentItems();
+        setContentItems(items);
+        // Save to localStorage as backup
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      } catch (err) {
+        console.error("Error loading content:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
+        
+        // Try to load from localStorage as fallback
+        const savedItems = localStorage.getItem(STORAGE_KEY);
+        if (savedItems) {
+          try {
+            // Parse the dates properly
+            const parsed = JSON.parse(savedItems);
+            const parsedWithDates = parsed.map((item: any) => ({
+              ...item,
+              createdAt: new Date(item.createdAt),
+              updatedAt: new Date(item.updatedAt),
+              publicationDate: item.publicationDate ? new Date(item.publicationDate) : undefined
+            }));
+            setContentItems(parsedWithDates);
+            toast.warning("Using local data. Some changes may not be saved to the server.");
+          } catch (parseErr) {
+            console.error("Error parsing saved content:", parseErr);
+          }
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
+
+    loadContentItems();
+
+    // Listen for network status changes
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
     
-    setContentItems((prev) => [...prev, newItem]);
-    toast.success("Content idea added successfully");
-    return newItem.id;
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Set up real-time subscription for content changes
+    const subscription = supabase
+      .channel('content-changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'content_items' 
+      }, (payload) => {
+        loadContentItems(); // Reload all content when any change occurs
+      })
+      .subscribe();
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Save to localStorage when content changes
+  useEffect(() => {
+    if (contentItems.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(contentItems));
+    }
+  }, [contentItems]);
+
+  const addContentItem = async (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist">) => {
+    try {
+      if (!isOnline) {
+        toast.error("You're offline. Please connect to the internet to add content.");
+        throw new Error("Can't add content while offline");
+      }
+
+      const now = new Date();
+      const newItem: Omit<ContentItem, "id" | "createdAt" | "updatedAt"> = {
+        ...item,
+        contentChecklist: {
+          intro: false,
+          mainPoints: false,
+          callToAction: false,
+          outro: false
+        }
+      };
+      
+      // Add to database
+      const id = await addContentItemToDb(newItem);
+      
+      // Update local state with the complete item from server
+      const updatedItems = await fetchAllContentItems();
+      setContentItems(updatedItems);
+      
+      toast.success("Content idea added successfully");
+      return id;
+    } catch (err) {
+      toast.error("Failed to add content");
+      throw err;
+    }
   };
 
-  const updateContentItem = (id: string, updates: Partial<ContentItem>) => {
-    setContentItems((prev) => 
-      prev.map((item) => 
-        item.id === id 
-          ? { ...item, ...updates, updatedAt: new Date() } 
-          : item
-      )
-    );
-    toast.success("Content updated");
+  const updateContentItem = async (id: string, updates: Partial<ContentItem>) => {
+    try {
+      if (!isOnline) {
+        toast.error("You're offline. Please connect to the internet to update content.");
+        throw new Error("Can't update content while offline");
+      }
+
+      // Update in database
+      await updateContentItemInDb(id, updates);
+      
+      // Update local state with the complete item from server
+      const updatedItems = await fetchAllContentItems();
+      setContentItems(updatedItems);
+      
+      toast.success("Content updated");
+    } catch (err) {
+      toast.error("Failed to update content");
+      throw err;
+    }
   };
 
-  const deleteContentItem = (id: string) => {
-    setContentItems((prev) => prev.filter((item) => item.id !== id));
-    toast.success("Content deleted");
+  const deleteContentItem = async (id: string) => {
+    try {
+      if (!isOnline) {
+        toast.error("You're offline. Please connect to the internet to delete content.");
+        throw new Error("Can't delete content while offline");
+      }
+
+      // Delete from database
+      await deleteContentItemFromDb(id);
+      
+      // Update local state
+      setContentItems(prev => prev.filter(item => item.id !== id));
+      
+      toast.success("Content deleted");
+    } catch (err) {
+      toast.error("Failed to delete content");
+      throw err;
+    }
   };
 
   const getContentByStatus = (status: ContentStatus): ContentItem[] => {
@@ -184,6 +277,8 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     <ContentContext.Provider
       value={{
         contentItems,
+        isLoading,
+        error,
         addContentItem,
         updateContentItem,
         deleteContentItem,

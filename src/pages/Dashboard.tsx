@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, FileExport, Search } from "lucide-react";
+import { PlusIcon, FileText, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ContentForm } from "@/components/ContentForm";
 import { DashboardStats } from "@/components/DashboardStats";
@@ -52,7 +52,7 @@ export default function Dashboard() {
           
           <div className="flex items-center gap-2">
             <Button onClick={() => exportToCSV()} variant="outline">
-              <FileExport className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-2" />
               Export
             </Button>
             

@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ContentBoardPage from "./pages/ContentBoardPage";
 import CalendarPage from "./pages/CalendarPage";
 import { ContentProvider } from "./context/ContentContext";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        <OfflineIndicator />
       </ContentProvider>
     </TooltipProvider>
   </QueryClientProvider>
