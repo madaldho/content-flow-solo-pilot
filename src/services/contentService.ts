@@ -19,30 +19,43 @@ export async function fetchAllContentItems(): Promise<ContentItem[]> {
   }
 
   // Convert dates and parse JSON fields
-  return (data || []).map(item => ({
-    id: item.id,
-    title: item.title,
-    platform: item.platform as Platform,
-    status: item.status as ContentStatus,
-    tags: item.tags as ContentTag[],
-    createdAt: new Date(item.created_at),
-    updatedAt: new Date(item.updated_at),
-    publicationDate: item.publication_date ? new Date(item.publication_date) : undefined,
-    notes: item.notes,
-    referenceLink: item.reference_link,
-    script: item.script,
-    scriptFile: item.script_file,
-    contentChecklist: item.content_checklist || {
-      intro: false,
-      mainPoints: false,
-      callToAction: false,
-      outro: false
-    },
-    productionNotes: item.production_notes,
-    equipmentUsed: item.equipment_used,
-    contentFiles: item.content_files,
-    metrics: item.metrics || {}
-  }));
+  return (data || []).map(item => {
+    // Parse content_checklist with proper type checking
+    const checklist = item.content_checklist ? (typeof item.content_checklist === 'object' ? item.content_checklist : JSON.parse(String(item.content_checklist))) : null;
+    
+    // Create a properly typed contentChecklist object
+    const contentChecklist = {
+      intro: checklist?.intro === true,
+      mainPoints: checklist?.mainPoints === true,
+      callToAction: checklist?.callToAction === true,
+      outro: checklist?.outro === true
+    };
+
+    // Parse metrics with proper type checking
+    const metrics = item.metrics ? 
+      (typeof item.metrics === 'object' ? item.metrics : JSON.parse(String(item.metrics))) : 
+      {};
+
+    return {
+      id: item.id,
+      title: item.title,
+      platform: item.platform as Platform,
+      status: item.status as ContentStatus,
+      tags: item.tags as ContentTag[],
+      createdAt: new Date(item.created_at),
+      updatedAt: new Date(item.updated_at),
+      publicationDate: item.publication_date ? new Date(item.publication_date) : undefined,
+      notes: item.notes,
+      referenceLink: item.reference_link,
+      script: item.script,
+      scriptFile: item.script_file,
+      contentChecklist,
+      productionNotes: item.production_notes,
+      equipmentUsed: item.equipment_used,
+      contentFiles: item.content_files,
+      metrics
+    };
+  });
 }
 
 /**
