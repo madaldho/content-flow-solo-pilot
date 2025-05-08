@@ -36,8 +36,8 @@ const formSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
   }),
-  platform: z.enum(platforms),
-  status: z.enum(statuses),
+  platform: z.enum(["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"] as const),
+  status: z.enum(["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"] as const),
   publicationDate: z.date().optional(),
   notes: z.string().optional(),
   referenceLink: z.string().optional(),
@@ -92,7 +92,12 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       // Convert equipment used string to array
       const equipmentUsed = values.equipmentUsed
         ? values.equipmentUsed.split(",").map(item => item.trim())
-        : undefined;
+        : [];
+        
+      // Convert content files string to array
+      const contentFiles = values.contentFiles
+        ? values.contentFiles.split(",").map(item => item.trim())
+        : [];
 
       // Ensure contentChecklist has the correct structure
       const contentChecklist = {
@@ -102,13 +107,22 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
         outro: initialData?.contentChecklist?.outro || false
       };
 
-      const contentData = {
-        ...values,
+      const contentData: Omit<ContentItem, "id" | "createdAt" | "updatedAt"> = {
+        title: values.title,
+        platform: values.platform,
+        status: values.status,
         tags: selectedTags,
-        equipmentUsed,
+        publicationDate: values.publicationDate,
+        notes: values.notes,
+        referenceLink: values.referenceLink,
+        script: values.script,
+        scriptFile: values.scriptFile,
         contentChecklist,
-      } as Omit<ContentItem, "id" | "createdAt" | "updatedAt"> & 
-          { id?: string; createdAt?: Date; updatedAt?: Date; };
+        productionNotes: values.productionNotes,
+        equipmentUsed,
+        contentFiles,
+        metrics: values.metrics
+      };
 
       if (initialData) {
         // Update existing content
@@ -215,7 +229,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -233,9 +247,6 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date()
-                      }
                       initialFocus
                     />
                   </PopoverContent>
