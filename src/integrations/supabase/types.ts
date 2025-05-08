@@ -72,6 +72,66 @@ export type Database = {
         }
         Relationships: []
       }
+      content_items: {
+        Row: {
+          content_checklist: Json | null
+          content_files: string[] | null
+          created_at: string
+          equipment_used: string[] | null
+          id: string
+          metrics: Json | null
+          notes: string | null
+          platform: string
+          production_notes: string | null
+          publication_date: string | null
+          reference_link: string | null
+          script: string | null
+          script_file: string | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content_checklist?: Json | null
+          content_files?: string[] | null
+          created_at?: string
+          equipment_used?: string[] | null
+          id?: string
+          metrics?: Json | null
+          notes?: string | null
+          platform: string
+          production_notes?: string | null
+          publication_date?: string | null
+          reference_link?: string | null
+          script?: string | null
+          script_file?: string | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content_checklist?: Json | null
+          content_files?: string[] | null
+          created_at?: string
+          equipment_used?: string[] | null
+          id?: string
+          metrics?: Json | null
+          notes?: string | null
+          platform?: string
+          production_notes?: string | null
+          publication_date?: string | null
+          reference_link?: string | null
+          script?: string | null
+          script_file?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       portfolios: {
         Row: {
           author_id: string
@@ -116,6 +176,44 @@ export type Database = {
           url?: string | null
         }
         Relationships: []
+      }
+      publication_schedule: {
+        Row: {
+          auto_post: boolean | null
+          content_id: string | null
+          created_at: string
+          id: string
+          platform: string
+          scheduled_time: string
+          updated_at: string
+        }
+        Insert: {
+          auto_post?: boolean | null
+          content_id?: string | null
+          created_at?: string
+          id?: string
+          platform: string
+          scheduled_time: string
+          updated_at?: string
+        }
+        Update: {
+          auto_post?: boolean | null
+          content_id?: string | null
+          created_at?: string
+          id?: string
+          platform?: string
+          scheduled_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_schedule_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

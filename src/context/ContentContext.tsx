@@ -1,7 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { ContentItem, ContentStats, ContentStatus } from "@/types/content";
-import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import { fetchAllContentItems, addContentItem as addContentItemToDb, updateContentItem as updateContentItemInDb, deleteContentItem as deleteContentItemFromDb } from "@/services/contentService";
 import { supabase } from "@/integrations/supabase/client";

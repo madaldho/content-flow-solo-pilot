@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -142,7 +141,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
     },
   });
 
-  function handleSubmit(values: z.infer<typeof formSchema>) {
+  async function handleSubmit(values: z.infer<typeof formSchema>) {
     try {
       // Convert equipment used string to array
       const equipmentUsed = values.equipmentUsed
@@ -158,12 +157,13 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
 
       if (initialData) {
         // Update existing content
-        updateContentItem(initialData.id, contentData);
+        await updateContentItem(initialData.id, contentData);
         toast.success("Content updated successfully");
       } else {
         // Add new content
-        const id = addContentItem(contentData);
-        if (onSubmit && contentData && id) {
+        const id = await addContentItem(contentData);
+        
+        if (onSubmit && contentData) {
           // Add id, createdAt and updatedAt for the callback
           const now = new Date();
           const completedData = {
@@ -171,11 +171,18 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
             id,
             createdAt: now,
             updatedAt: now,
+            contentChecklist: {
+              intro: false,
+              mainPoints: false,
+              callToAction: false,
+              outro: false
+            }
           } as ContentItem;
           
           onSubmit(completedData);
         }
       }
+      
       onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
