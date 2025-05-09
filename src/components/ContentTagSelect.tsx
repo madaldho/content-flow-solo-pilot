@@ -57,7 +57,7 @@ export function ContentTagSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between rounded-xl border-input bg-background hover:bg-secondary/30 transition-colors"
         >
           {value.length > 0
             ? `${value.length} tag${value.length > 1 ? "s" : ""} selected`
@@ -65,16 +65,17 @@ export function ContentTagSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-full p-0 rounded-xl shadow-lg border border-border/50 bg-popover/95 backdrop-blur-sm">
         <Command>
-          <CommandInput placeholder="Search tags..." />
+          <CommandInput placeholder="Search tags..." className="rounded-lg" />
           <CommandEmpty>No tag found.</CommandEmpty>
-          <CommandGroup>
+          <CommandGroup className="max-h-60 overflow-auto">
             {availableTags.map((tag) => (
               <CommandItem
                 key={tag}
                 value={tag}
                 onSelect={() => toggleTag(tag)}
+                className="flex items-center gap-2 rounded-lg hover:bg-secondary/50 transition-colors"
               >
                 <Check
                   className={cn(

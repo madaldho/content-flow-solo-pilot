@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ContentBoardPage from "./pages/ContentBoardPage";
 import CalendarPage from "./pages/CalendarPage";
 import { ContentProvider } from "./context/ContentContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 
 const queryClient = new QueryClient();
@@ -16,19 +17,21 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <ContentProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/content-board" element={<ContentBoardPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-        <OfflineIndicator />
-      </ContentProvider>
+      <LanguageProvider>
+        <ContentProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/content-board" element={<ContentBoardPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <OfflineIndicator />
+        </ContentProvider>
+      </LanguageProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
