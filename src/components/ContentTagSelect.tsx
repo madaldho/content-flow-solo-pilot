@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ContentTag } from "@/types/content";
+import { useLanguage } from "@/context/LanguageContext";
 
 const availableTags: ContentTag[] = [
   "Education",
@@ -42,6 +43,7 @@ export function ContentTagSelect({
   open,
   onOpenChange,
 }: ContentTagSelectProps) {
+  const { t } = useLanguage();
   // Ensure value is always an array
   const safeValue = Array.isArray(value) ? value : [];
   
@@ -63,15 +65,15 @@ export function ContentTagSelect({
           className="w-full justify-between rounded-xl border-input bg-background hover:bg-secondary/30 transition-colors"
         >
           {safeValue.length > 0
-            ? `${safeValue.length} tag${safeValue.length > 1 ? "s" : ""} selected`
-            : "Select tags..."}
+            ? `${safeValue.length} ${t(safeValue.length > 1 ? "tags" : "tag")} ${t("selected")}`
+            : t("selectTags")}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0 rounded-xl shadow-lg border border-border/50 bg-popover/95 backdrop-blur-sm">
         <Command>
-          <CommandInput placeholder="Search tags..." className="rounded-lg" />
-          <CommandEmpty>No tag found.</CommandEmpty>
+          <CommandInput placeholder={t("searchTags")} className="rounded-lg" />
+          <CommandEmpty>{t("noTagFound")}</CommandEmpty>
           <CommandGroup className="max-h-60 overflow-auto">
             {availableTags.map((tag) => (
               <CommandItem
@@ -86,7 +88,7 @@ export function ContentTagSelect({
                     safeValue.includes(tag) ? "opacity-100" : "opacity-0"
                   )}
                 />
-                {tag}
+                {t(tag.toLowerCase()) || tag}
               </CommandItem>
             ))}
           </CommandGroup>

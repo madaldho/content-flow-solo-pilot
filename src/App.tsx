@@ -8,8 +8,8 @@ import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import ContentBoardPage from "./pages/ContentBoardPage";
 import CalendarPage from "./pages/CalendarPage";
-import { ContentProvider } from "./context/ContentContext";
-import { LanguageProvider } from "./context/LanguageContext";
+import SettingsPage from "./pages/SettingsPage";
+import { CombinedContextWrapper } from "./context/CombinedContextWrapper";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 
 const queryClient = new QueryClient();
@@ -17,21 +17,20 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <LanguageProvider>
-        <ContentProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/content-board" element={<ContentBoardPage />} />
-              <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          <OfflineIndicator />
-        </ContentProvider>
-      </LanguageProvider>
+      <CombinedContextWrapper>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/content-board" element={<ContentBoardPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+        <OfflineIndicator />
+      </CombinedContextWrapper>
     </TooltipProvider>
   </QueryClientProvider>
 );
