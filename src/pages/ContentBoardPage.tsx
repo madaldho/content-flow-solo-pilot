@@ -21,8 +21,10 @@ export default function ContentBoardPage() {
   const [searchResults, setSearchResults] = useState<ContentItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   
+  // Ensure contentItems is always an array
+  const allContentItems = Array.isArray(contentItems) ? contentItems : [];
+  
   // Get unique platforms from content items
-  const allContentItems = contentItems || [];
   const platforms = ["All", ...Array.from(new Set(allContentItems.map(item => item.platform)))] as (Platform | "All")[];
   
   const handleSearch = (query: string) => {
@@ -38,7 +40,7 @@ export default function ContentBoardPage() {
       item.title.toLowerCase().includes(lowerQuery) ||
       item.platform.toLowerCase().includes(lowerQuery) ||
       item.status.toLowerCase().includes(lowerQuery) ||
-      (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery))) ||
+      (Array.isArray(item.tags) && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery))) ||
       (item.notes && item.notes.toLowerCase().includes(lowerQuery))
     );
     

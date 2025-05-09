@@ -37,16 +37,19 @@ interface ContentTagSelectProps {
 }
 
 export function ContentTagSelect({
-  value,
+  value = [], // Provide default empty array to prevent undefined
   onValueChange,
   open,
   onOpenChange,
 }: ContentTagSelectProps) {
+  // Ensure value is always an array
+  const safeValue = Array.isArray(value) ? value : [];
+  
   const toggleTag = (tag: ContentTag) => {
-    if (value.includes(tag)) {
-      onValueChange(value.filter((t) => t !== tag));
+    if (safeValue.includes(tag)) {
+      onValueChange(safeValue.filter((t) => t !== tag));
     } else {
-      onValueChange([...value, tag]);
+      onValueChange([...safeValue, tag]);
     }
   };
 
@@ -59,8 +62,8 @@ export function ContentTagSelect({
           aria-expanded={open}
           className="w-full justify-between rounded-xl border-input bg-background hover:bg-secondary/30 transition-colors"
         >
-          {value.length > 0
-            ? `${value.length} tag${value.length > 1 ? "s" : ""} selected`
+          {safeValue.length > 0
+            ? `${safeValue.length} tag${safeValue.length > 1 ? "s" : ""} selected`
             : "Select tags..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -80,7 +83,7 @@ export function ContentTagSelect({
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
-                    value.includes(tag) ? "opacity-100" : "opacity-0"
+                    safeValue.includes(tag) ? "opacity-100" : "opacity-0"
                   )}
                 />
                 {tag}
