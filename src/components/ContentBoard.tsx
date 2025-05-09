@@ -8,9 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { ContentForm } from "./ContentForm";
 import { ContentDetails } from "./ContentDetails";
-import { History, PlusIcon } from "lucide-react";
-import { toast } from "sonner";
-import { format } from "date-fns";
+import { PlusIcon } from "lucide-react";
 
 interface ContentBoardColumnProps {
   status: ContentStatus;
@@ -22,7 +20,6 @@ interface ContentBoardColumnProps {
 
 function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index }: ContentBoardColumnProps) {
   const { t } = useLanguage();
-  const { updateContentItem } = useContent();
   
   const statusColors: Record<ContentStatus, string> = {
     "Idea": "border-status-idea",
@@ -36,43 +33,8 @@ function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index 
   // Ensure items is always an array
   const safeItems = Array.isArray(items) ? items : [];
 
-  // Handle drag over events
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.currentTarget.classList.add('bg-secondary/30');
-  };
-
-  // Handle drag leave events
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.currentTarget.classList.remove('bg-secondary/30');
-  };
-
-  // Handle drop events
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.currentTarget.classList.remove('bg-secondary/30');
-    
-    try {
-      const itemId = e.dataTransfer.getData("itemId");
-      const sourceStatus = e.dataTransfer.getData("sourceStatus");
-      
-      if (sourceStatus !== status) {
-        updateContentItem(itemId, { status });
-        toast.success(`Moved item to ${status}`);
-      }
-    } catch (error) {
-      console.error("Error handling drop:", error);
-      toast.error("Failed to move item");
-    }
-  };
-
   return (
-    <div 
-      className="kanban-column rounded-lg transition-all"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
+    <div className="kanban-column">
       <div className={`flex items-center justify-between p-2 border-b-2 ${statusColors[status]} mb-3 sticky top-0 bg-background z-10`}>
         <h3 className="font-medium">{t(status.toLowerCase().replace(/\s+/g, ""))}</h3>
         <span className="text-xs px-2 py-1 rounded-full bg-muted">{safeItems.length}</span>
@@ -88,13 +50,6 @@ function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index 
             onDragStart={(e) => {
               e.dataTransfer.setData("itemId", item.id);
               e.dataTransfer.setData("sourceStatus", status);
-              // Add a ghost drag image
-              const dragImage = document.createElement('div');
-              dragImage.classList.add('drag-ghost');
-              dragImage.textContent = item.title;
-              document.body.appendChild(dragImage);
-              e.dataTransfer.setDragImage(dragImage, 0, 0);
-              setTimeout(() => document.body.removeChild(dragImage), 0);
             }}
           >
             <ContentStatusCard 
@@ -102,16 +57,6 @@ function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index 
               item={item} 
               onClick={() => onItemClick(item.id)}
             />
-            
-            {/* Display last history entry directly on the card if available */}
-            {item.history && item.history.length > 0 && (
-              <div className="mt-2 text-xs flex items-center gap-1 text-muted-foreground px-2 pb-1">
-                <History className="h-3 w-3" />
-                <span>
-                  {format(new Date(item.history[item.history.length-1].timestamp), "MMM dd, HH:mm")}
-                </span>
-              </div>
-            )}
           </div>
         ))}
         
@@ -143,12 +88,31 @@ export function ContentBoard() {
 
   // Status columns for the board
   const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
+  
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetStatus: ContentStatus) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData("itemId");
+    const sourceStatus = e.dataTransfer.getData("sourceStatus");
+    
+    if (sourceStatus !== targetStatus) {
+      updateContentItem(itemId, { status: targetStatus });
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
 
   return (
     <>
       <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide h-[calc(100vh-12rem)]">
         {statuses.map((status, index) => (
-          <div key={status} className="min-w-[320px]">
+          <div 
+            key={status}
+            onDrop={(e) => handleDrop(e, status)}
+            onDragOver={handleDragOver}
+            className="min-w-[320px]"
+          >
             <ContentBoardColumn
               status={status}
               items={getContentByStatus(status) || []}

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,16 +31,15 @@ import { ContentTagSelect } from "./ContentTagSelect";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
 
-// Define the statuses
+const platforms: Platform[] = ["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"];
 const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
 
-// Create a schema that accepts both predefined platforms and custom platforms
 const formSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
   }),
-  platform: z.string(),
-  status: z.enum(["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"]),
+  platform: z.enum(["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"] as const),
+  status: z.enum(["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"] as const),
   publicationDate: z.date().optional(),
   notes: z.string().optional(),
   referenceLink: z.string().optional(),
@@ -65,23 +65,18 @@ interface ContentFormProps {
 }
 
 export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps) {
-  const { addContentItem, updateContentItem, platforms } = useContent();
+  const { addContentItem, updateContentItem } = useContent();
   const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<ContentTag[]>(
     initialData?.tags || []
   );
   const [tagsOpen, setTagsOpen] = useState(false);
 
-  // Get available platforms from context or use default
-  const availablePlatforms = Array.isArray(platforms) && platforms.length > 0 
-    ? platforms 
-    : ["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"];
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: initialData?.title || "",
-      platform: initialData?.platform || availablePlatforms[0],
+      platform: initialData?.platform || "YouTube",
       status: initialData?.status || "Idea",
       publicationDate: initialData?.publicationDate,
       notes: initialData?.notes || "",
@@ -192,7 +187,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {availablePlatforms.map((platform) => (
+                    {platforms.map((platform) => (
                       <SelectItem key={platform} value={platform}>{platform}</SelectItem>
                     ))}
                   </SelectContent>
@@ -216,7 +211,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                   </FormControl>
                   <SelectContent>
                     {statuses.map((status) => (
-                      <SelectItem key={status} value={status}>{t(status.toLowerCase().replace(/\s+/g, ""))}</SelectItem>
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -380,7 +375,6 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
           )}
         />
 
-        {/* Tag selection */}
         <div>
           <Label className="text-sm text-muted-foreground flex items-center gap-2">
             <Tags className="w-4 h-4" />

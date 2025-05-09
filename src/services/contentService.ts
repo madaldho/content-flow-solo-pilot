@@ -38,20 +38,15 @@ export async function fetchAllContentItems(): Promise<ContentItem[]> {
 
     // Parse history with proper type checking - handle if the field doesn't exist
     let history: HistoryEntry[] = [];
-    
     try {
-      // Check if the history field exists in the database schema
-      if ('history' in item) {
-        const historyData = item.history;
-        if (historyData) {
-          const parsedHistory = typeof historyData === 'object' ? historyData : JSON.parse(String(historyData));
-          history = Array.isArray(parsedHistory) ? parsedHistory.map((entry: any) => ({
-            timestamp: new Date(entry.timestamp),
-            previousStatus: entry.previousStatus,
-            newStatus: entry.newStatus as ContentStatus,
-            changedBy: entry.changedBy
-          })) : [];
-        }
+      if (item.history) {
+        const parsedHistory = typeof item.history === 'object' ? item.history : JSON.parse(String(item.history));
+        history = Array.isArray(parsedHistory) ? parsedHistory.map((entry: any) => ({
+          timestamp: new Date(entry.timestamp),
+          previousStatus: entry.previousStatus,
+          newStatus: entry.newStatus as ContentStatus,
+          changedBy: entry.changedBy
+        })) : [];
       }
     } catch (e) {
       console.error('Error parsing history:', e);
@@ -153,6 +148,9 @@ export async function updateContentItem(id: string, updates: Partial<ContentItem
   }
 }
 
+/**
+ * Delete a content item
+ */
 export async function deleteContentItem(id: string): Promise<void> {
   const { error } = await supabase
     .from('content_items')
