@@ -2,9 +2,11 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Search, Menu, X } from "lucide-react";
+import { Search, Menu, X, Settings } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { LanguageSelector } from "@/components/ui/language-selector";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -14,6 +16,7 @@ export function Header({ onSearch }: HeaderProps) {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { language, setLanguage } = useLanguage();
 
   const handleSearch = () => {
     if (onSearch) {
@@ -53,19 +56,25 @@ export function Header({ onSearch }: HeaderProps) {
             variant="ghost" 
             onClick={() => navigate("/")}
           >
-            Dashboard
+            {useLanguage().t("dashboard")}
           </Button>
           <Button 
             variant="ghost" 
             onClick={() => navigate("/content-board")}
           >
-            Content Board
+            {useLanguage().t("contentBoard")}
           </Button>
           <Button 
             variant="ghost" 
             onClick={() => navigate("/calendar")}
           >
-            Calendar
+            {useLanguage().t("calendar")}
+          </Button>
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate("/settings")}
+          >
+            {useLanguage().t("settings")}
           </Button>
         </div>
         
@@ -74,7 +83,7 @@ export function Header({ onSearch }: HeaderProps) {
             <div className="flex w-full max-w-sm items-center space-x-2">
               <Input
                 type="search"
-                placeholder="Search..."
+                placeholder={useLanguage().t("search")}
                 className="w-[150px] lg:w-[250px]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -85,6 +94,7 @@ export function Header({ onSearch }: HeaderProps) {
               </Button>
             </div>
           )}
+          <LanguageSelector language={language} setLanguage={setLanguage} variant="icon" />
           <ThemeToggle />
         </div>
         
@@ -94,6 +104,7 @@ export function Header({ onSearch }: HeaderProps) {
               <Search className="h-4 w-4" />
             </Button>
           )}
+          <LanguageSelector language={language} setLanguage={setLanguage} variant="icon" />
           <ThemeToggle />
         </div>
       </div>
@@ -105,7 +116,7 @@ export function Header({ onSearch }: HeaderProps) {
             <div className="flex w-full items-center space-x-2 mb-4">
               <Input
                 type="search"
-                placeholder="Search..."
+                placeholder={useLanguage().t("search")}
                 className="w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -125,7 +136,7 @@ export function Header({ onSearch }: HeaderProps) {
                 setIsMenuOpen(false);
               }}
             >
-              Dashboard
+              {useLanguage().t("dashboard")}
             </Button>
             <Button 
               variant="ghost" 
@@ -135,7 +146,7 @@ export function Header({ onSearch }: HeaderProps) {
                 setIsMenuOpen(false);
               }}
             >
-              Content Board
+              {useLanguage().t("contentBoard")}
             </Button>
             <Button 
               variant="ghost" 
@@ -145,7 +156,17 @@ export function Header({ onSearch }: HeaderProps) {
                 setIsMenuOpen(false);
               }}
             >
-              Calendar
+              {useLanguage().t("calendar")}
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start"
+              onClick={() => {
+                navigate("/settings");
+                setIsMenuOpen(false);
+              }}
+            >
+              {useLanguage().t("settings")}
             </Button>
           </div>
         </div>

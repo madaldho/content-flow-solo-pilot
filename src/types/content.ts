@@ -28,6 +28,13 @@ export type ContentStatus =
   | "Ready to Publish" 
   | "Published";
 
+export interface HistoryEntry {
+  timestamp: Date;
+  previousStatus?: ContentStatus;
+  newStatus: ContentStatus;
+  changedBy?: string;
+}
+
 export interface ContentItem {
   id: string;
   title: string;
@@ -58,6 +65,7 @@ export interface ContentItem {
     rating?: number;
     insights?: string;
   };
+  history?: HistoryEntry[];
 }
 
 export interface ContentStats {
@@ -76,4 +84,26 @@ export interface ContentStats {
   };
   unfinishedCount: number;
   statusBreakdown: Record<ContentStatus, number>;
+}
+
+export interface ContentContextType {
+  contentItems: ContentItem[];
+  isLoading: boolean;
+  error: Error | null;
+  platforms: Platform[];
+  tags: ContentTag[];
+  addCustomPlatform: (platform: Platform) => void;
+  addCustomTag: (tag: ContentTag) => void;
+  updateCustomPlatform: (oldPlatform: Platform, newPlatform: Platform) => void;
+  updateCustomTag: (oldTag: ContentTag, newTag: ContentTag) => void;
+  removeCustomPlatform: (platform: Platform) => void;
+  removeCustomTag: (tag: ContentTag) => void;
+  resetCustomOptions: (type: "platform" | "tag") => void;
+  addContentItem: (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist" | "history">) => Promise<string>;
+  updateContentItem: (id: string, updates: Partial<ContentItem>) => Promise<void>;
+  deleteContentItem: (id: string) => Promise<void>;
+  getContentStats: () => ContentStats;
+  getContentByStatus: (status: ContentStatus) => ContentItem[];
+  exportToCSV: () => void;
+  getContentById: (id: string) => ContentItem | undefined;
 }

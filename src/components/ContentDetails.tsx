@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useContent } from "@/context/ContentContext";
 import { ContentItem } from "@/types/content";
@@ -12,6 +11,7 @@ import { ContentForm } from "./ContentForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ExternalLink, File, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { HistoryTimeline } from "./HistoryTimeline";
 
 interface ContentDetailsProps {
   contentId: string | null;
@@ -332,6 +332,13 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
                 )}
               </div>
             </>
+          )}
+          
+          {/* History Timeline */}
+          {item.history && (
+            <div className="bg-card p-4 rounded-xl border mt-6">
+              <HistoryTimeline history={item.history} />
+            </div>
           )}
         </div>
 

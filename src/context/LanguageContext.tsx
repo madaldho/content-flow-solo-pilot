@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 export type Language = "en" | "id";
@@ -91,11 +92,20 @@ const translations: Translations = {
     "backupRestore": "Backup & Restore",
     "confirmResetWarning": "This will delete all custom options. Default options will be restored.",
     "reset": "Reset",
+    "actions": "Actions",
     
     // Language
     "language": "Language",
     "toggleLanguage": "Toggle Language",
     "selectLanguage": "Select Language",
+    
+    // History
+    "statusHistory": "Status History",
+    "movedFrom": "Moved from",
+    "to": "to",
+    "createdAs": "Created as",
+    "noHistory": "No status history available",
+    "moveTo": "Move to",
     
     // General
     "all": "All",
@@ -189,7 +199,6 @@ const translations: Translations = {
     "confirmAction": "Konfirmasi Tindakan",
     "name": "Nama",
     "save": "Simpan",
-    "cancel": "Batal",
     "enterName": "Masukkan nama",
     "selectOption": "Pilih opsi",
     "manageContent": "Kelola Konten",
@@ -198,11 +207,20 @@ const translations: Translations = {
     "backupRestore": "Cadangan & Pemulihan",
     "confirmResetWarning": "Ini akan menghapus semua opsi kustom. Opsi default akan dipulihkan.",
     "reset": "Atur Ulang",
+    "actions": "Tindakan",
     
     // Language
     "language": "Bahasa",
     "toggleLanguage": "Ganti Bahasa",
     "selectLanguage": "Pilih Bahasa",
+    
+    // History
+    "statusHistory": "Riwayat Status",
+    "movedFrom": "Dipindahkan dari",
+    "to": "ke",
+    "createdAs": "Dibuat sebagai",
+    "noHistory": "Tidak ada riwayat status tersedia",
+    "moveTo": "Pindahkan ke",
     
     // General
     "all": "Semua",

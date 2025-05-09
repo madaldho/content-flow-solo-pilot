@@ -1,15 +1,24 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { ContentItem, ContentStats, ContentStatus } from "@/types/content";
+import { ContentItem, ContentStats, ContentStatus, HistoryEntry } from "@/types/content";
 import { toast } from "sonner";
 import { fetchAllContentItems, addContentItem as addContentItemToDb, updateContentItem as updateContentItemInDb, deleteContentItem as deleteContentItemFromDb } from "@/services/contentService";
 import { supabase } from "@/integrations/supabase/client";
+import { useCustomOptions } from './CustomOptionsContext';
 
 interface ContentContextType {
   contentItems: ContentItem[];
   isLoading: boolean;
   error: Error | null;
-  addContentItem: (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist">) => Promise<string>;
+  platforms: string[];
+  tags: string[];
+  addCustomPlatform: (name: string) => void;
+  addCustomTag: (name: string) => void;
+  updateCustomPlatform: (name: string, newName: string) => void;
+  updateCustomTag: (name: string, newName: string) => void;
+  removeCustomPlatform: (name: string) => void;
+  removeCustomTag: (name: string) => void;
+  resetCustomOptions: () => void;
+  addContentItem: (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist" | "history">) => Promise<string>;
   updateContentItem: (id: string, updates: Partial<ContentItem>) => Promise<void>;
   deleteContentItem: (id: string) => Promise<void>;
   getContentStats: () => ContentStats;
@@ -27,6 +36,19 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  // Get custom options from context
+  const { 
+    platforms, 
+    tags, 
+    addCustomPlatform, 
+    addCustomTag, 
+    updateCustomPlatform, 
+    updateCustomTag, 
+    removeCustomPlatform, 
+    removeCustomTag, 
+    resetCustomOptions 
+  } = useCustomOptions();
 
   // Initialize with data from Supabase
   useEffect(() => {
@@ -51,7 +73,11 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
               ...item,
               createdAt: new Date(item.createdAt),
               updatedAt: new Date(item.updatedAt),
-              publicationDate: item.publicationDate ? new Date(item.publicationDate) : undefined
+              publicationDate: item.publicationDate ? new Date(item.publicationDate) : undefined,
+              history: item.history ? item.history.map((entry: any) => ({
+                ...entry,
+                timestamp: new Date(entry.timestamp)
+              })) : []
             }));
             setContentItems(parsedWithDates);
             toast.warning("Using local data. Some changes may not be saved to the server.");
@@ -99,7 +125,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [contentItems]);
 
-  const addContentItem = async (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist">) => {
+  const addContentItem = async (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist" | "history">) => {
     try {
       if (!isOnline) {
         toast.error("You're offline. Please connect to the internet to add content.");
@@ -114,7 +140,11 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
           mainPoints: false,
           callToAction: false,
           outro: false
-        }
+        },
+        history: [{
+          timestamp: now,
+          newStatus: item.status,
+        }]
       };
       
       // Add to database
@@ -137,6 +167,22 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!isOnline) {
         toast.error("You're offline. Please connect to the internet to update content.");
         throw new Error("Can't update content while offline");
+      }
+
+      const existingItem = contentItems.find(item => item.id === id);
+      if (!existingItem) {
+        throw new Error("Content item not found");
+      }
+
+      // Add history entry if status has changed
+      if (updates.status && updates.status !== existingItem.status) {
+        const historyEntry: HistoryEntry = {
+          timestamp: new Date(),
+          previousStatus: existingItem.status,
+          newStatus: updates.status,
+        };
+
+        updates.history = existingItem.history ? [...existingItem.history, historyEntry] : [historyEntry];
       }
 
       // Update in database
@@ -278,6 +324,15 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         contentItems,
         isLoading,
         error,
+        platforms,
+        tags,
+        addCustomPlatform,
+        addCustomTag,
+        updateCustomPlatform,
+        updateCustomTag,
+        removeCustomPlatform,
+        removeCustomTag,
+        resetCustomOptions,
         addContentItem,
         updateContentItem,
         deleteContentItem,

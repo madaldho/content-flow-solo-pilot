@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ContentItem, ContentStatus, ContentTag, Platform } from "@/types/content";
+import { ContentItem, ContentStatus, ContentTag, HistoryEntry, Platform } from "@/types/content";
 
 // This service will manage the interactions with the Supabase database
 
@@ -36,6 +36,17 @@ export async function fetchAllContentItems(): Promise<ContentItem[]> {
       (typeof item.metrics === 'object' ? item.metrics : JSON.parse(String(item.metrics))) : 
       {};
 
+    // Parse history with proper type checking
+    const history: HistoryEntry[] = item.history ? 
+      (typeof item.history === 'object' ? item.history : JSON.parse(String(item.history)))
+        .map((entry: any) => ({
+          timestamp: new Date(entry.timestamp),
+          previousStatus: entry.previousStatus,
+          newStatus: entry.newStatus,
+          changedBy: entry.changedBy
+        })) : 
+      [];
+
     return {
       id: item.id,
       title: item.title,
@@ -53,7 +64,8 @@ export async function fetchAllContentItems(): Promise<ContentItem[]> {
       productionNotes: item.production_notes,
       equipmentUsed: item.equipment_used,
       contentFiles: item.content_files,
-      metrics
+      metrics,
+      history
     };
   });
 }
@@ -76,7 +88,8 @@ export async function addContentItem(item: Omit<ContentItem, "id" | "createdAt" 
     production_notes: item.productionNotes,
     equipment_used: item.equipmentUsed,
     content_files: item.contentFiles,
-    metrics: item.metrics
+    metrics: item.metrics,
+    history: item.history
   };
 
   const { data, error } = await supabase
@@ -113,6 +126,7 @@ export async function updateContentItem(id: string, updates: Partial<ContentItem
   if ('equipmentUsed' in updates) updatesForDb.equipment_used = updates.equipmentUsed;
   if ('contentFiles' in updates) updatesForDb.content_files = updates.contentFiles;
   if ('metrics' in updates) updatesForDb.metrics = updates.metrics;
+  if ('history' in updates) updatesForDb.history = updates.history;
   
   // Always update the updated_at timestamp
   updatesForDb.updated_at = new Date().toISOString();
