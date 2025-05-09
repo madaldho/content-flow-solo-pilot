@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tags } from "lucide-react";
 import { ContentTagSelect } from "./ContentTagSelect";
 import { useContent } from "@/context/ContentContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const platforms: Platform[] = ["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"];
 const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
@@ -64,6 +66,7 @@ interface ContentFormProps {
 
 export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps) {
   const { addContentItem, updateContentItem } = useContent();
+  const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<ContentTag[]>(
     initialData?.tags || []
   );
@@ -162,9 +165,9 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel>{t("title")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Content Title" {...field} />
+                  <Input placeholder={t("title")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -176,11 +179,11 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
             name="platform"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Platform</FormLabel>
+                <FormLabel>{t("platform")}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a platform" />
+                      <SelectValue placeholder={t("platform")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -199,11 +202,11 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel>{t("status")}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a status" />
+                      <SelectValue placeholder={t("status")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -222,7 +225,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
             name="publicationDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Publication Date</FormLabel>
+                <FormLabel>{t("publicationDate")}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -236,7 +239,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                         {field.value ? (
                           format(field.value, "PPP")
                         ) : (
-                          <span>Pick a date</span>
+                          <span>{t("pickDate")}</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -262,16 +265,16 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>{t("notes")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Add any relevant notes here."
+                  placeholder={t("additionalInfo")}
                   className="resize-none"
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                Additional information or context for this content.
+                {t("additionalInfo")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -284,9 +287,9 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
             name="referenceLink"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Reference Link</FormLabel>
+                <FormLabel>{t("referenceLink")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Link to reference material" {...field} />
+                  <Input placeholder={t("referenceLink")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -298,9 +301,9 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
             name="scriptFile"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Script File</FormLabel>
+                <FormLabel>{t("scriptFile")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Path to script file" {...field} />
+                  <Input placeholder={t("scriptFile")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -313,17 +316,14 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
           name="script"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Script</FormLabel>
+              <FormLabel>{t("scriptContent")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Write the script here."
+                  placeholder={t("scriptContent")}
                   className="resize-none"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                The content script.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -334,10 +334,10 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
           name="productionNotes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Production Notes</FormLabel>
+              <FormLabel>{t("productionNotes")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Any notes about the production process."
+                  placeholder={t("productionNotes")}
                   className="resize-none"
                   {...field}
                 />
@@ -352,9 +352,9 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
           name="equipmentUsed"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Equipment Used</FormLabel>
+              <FormLabel>{t("equipmentUsed")}</FormLabel>
               <FormControl>
-                <Input placeholder="List of equipment used, separated by commas" {...field} />
+                <Input placeholder={t("equipmentUsed")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -366,9 +366,9 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
           name="contentFiles"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Content Files</FormLabel>
+              <FormLabel>{t("contentFiles")}</FormLabel>
               <FormControl>
-                <Input placeholder="Links to content files, separated by commas" {...field} />
+                <Input placeholder={t("contentFiles")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -378,7 +378,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
         <div>
           <Label className="text-sm text-muted-foreground flex items-center gap-2">
             <Tags className="w-4 h-4" />
-            Tags
+            {t("tags")}
           </Label>
           <ContentTagSelect
             open={tagsOpen}
@@ -393,7 +393,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
           </div>
         </div>
 
-        <Button type="submit">Submit</Button>
+        <Button type="submit">{t("submit")}</Button>
       </form>
     </Form>
   );
