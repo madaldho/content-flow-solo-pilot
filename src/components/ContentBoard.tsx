@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { ContentForm } from "./ContentForm";
 import { ContentDetails } from "./ContentDetails";
 import { PlusIcon } from "lucide-react";
-import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 
 interface ContentBoardColumnProps {
   status: ContentStatus;
@@ -32,59 +31,49 @@ function ContentBoardColumn({ status, items, onItemClick, onAddItem, index }: Co
   };
 
   return (
-    <Droppable droppableId={status} type="CONTENT">
-      {(provided, snapshot) => (
-        <div 
-          className={`kanban-column ${snapshot.isDraggingOver ? "bg-secondary/50" : ""}`}
-          ref={provided.innerRef}
-          {...provided.droppableProps}
+    <div className="kanban-column">
+      <div className={`flex items-center justify-between p-2 border-b-2 ${statusColors[status]} mb-3 sticky top-0 bg-background z-10`}>
+        <h3 className="font-medium">{t(status.toLowerCase().replace(/\s+/g, ""))}</h3>
+        <span className="text-xs px-2 py-1 rounded-full bg-muted">{items.length}</span>
+      </div>
+      
+      <div className="space-y-3 mb-4 flex-1">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="kanban-card transition-all duration-200 cursor-pointer"
+            onClick={() => onItemClick(item.id)}
+            draggable="true"
+            onDragStart={(e) => {
+              e.dataTransfer.setData("itemId", item.id);
+              e.dataTransfer.setData("sourceStatus", status);
+            }}
+          >
+            <ContentStatusCard 
+              key={item.id} 
+              item={item} 
+              onClick={() => onItemClick(item.id)}
+            />
+          </div>
+        ))}
+        
+        {items.length === 0 && (
+          <div className="text-center p-4 text-sm text-muted-foreground">
+            {t("noContent")}
+          </div>
+        )}
+      </div>
+      
+      {status === "Idea" && onAddItem && (
+        <Button 
+          variant="outline" 
+          className="w-full mb-2 rounded-xl hover:bg-primary/10" 
+          onClick={onAddItem}
         >
-          <div className={`flex items-center justify-between p-2 border-b-2 ${statusColors[status]} mb-3 sticky top-0 bg-background z-10`}>
-            <h3 className="font-medium">{t(status.toLowerCase().replace(/\s+/g, ""))}</h3>
-            <span className="text-xs px-2 py-1 rounded-full bg-muted">{items.length}</span>
-          </div>
-          
-          <div className="space-y-3 mb-4 flex-1">
-            {items.map((item, idx) => (
-              <Draggable key={item.id} draggableId={item.id} index={idx}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    className={`kanban-card ${snapshot.isDragging ? "kanban-card-ghost" : ""}`}
-                  >
-                    <ContentStatusCard 
-                      key={item.id} 
-                      item={item} 
-                      onClick={() => onItemClick(item.id)}
-                    />
-                  </div>
-                )}
-              </Draggable>
-            ))}
-            
-            {provided.placeholder}
-            
-            {items.length === 0 && (
-              <div className="text-center p-4 text-sm text-muted-foreground">
-                {t("noContent")}
-              </div>
-            )}
-          </div>
-          
-          {status === "Idea" && onAddItem && (
-            <Button 
-              variant="outline" 
-              className="w-full mb-2 rounded-xl hover:bg-primary/10" 
-              onClick={onAddItem}
-            >
-              <PlusIcon className="h-4 w-4 mr-2" /> {t("addIdea")}
-            </Button>
-          )}
-        </div>
+          <PlusIcon className="h-4 w-4 mr-2" /> {t("addIdea")}
+        </Button>
       )}
-    </Droppable>
+    </div>
   );
 }
 
@@ -97,49 +86,40 @@ export function ContentBoard() {
   // Status columns for the board
   const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
   
-  const handleDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result;
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetStatus: ContentStatus) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData("itemId");
+    const sourceStatus = e.dataTransfer.getData("sourceStatus");
     
-    // If dropped outside a droppable area
-    if (!destination) return;
-    
-    // If dropped in the same position
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) return;
-    
-    // Get the content item that was moved
-    const item = getContentByStatus(source.droppableId as ContentStatus).find(
-      item => item.id === draggableId
-    );
-    
-    if (item) {
-      // If the status has changed, update it
-      if (destination.droppableId !== source.droppableId) {
-        updateContentItem(item.id, {
-          status: destination.droppableId as ContentStatus
-        });
-      }
+    if (sourceStatus !== targetStatus) {
+      updateContentItem(itemId, { status: targetStatus });
     }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
   };
 
   return (
     <>
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide h-[calc(100vh-12rem)]">
-          {statuses.map((status, index) => (
+      <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide h-[calc(100vh-12rem)]">
+        {statuses.map((status, index) => (
+          <div 
+            key={status}
+            onDrop={(e) => handleDrop(e, status)}
+            onDragOver={handleDragOver}
+            className="min-w-[320px]"
+          >
             <ContentBoardColumn
-              key={status}
               status={status}
               items={getContentByStatus(status)}
               onItemClick={(id) => setSelectedContentId(id)}
               onAddItem={status === "Idea" ? () => setIsAddingContent(true) : undefined}
               index={index}
             />
-          ))}
-        </div>
-      </DragDropContext>
+          </div>
+        ))}
+      </div>
       
       {/* Content Details Dialog */}
       <ContentDetails
