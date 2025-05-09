@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 export type Language = "en" | "id";
@@ -47,9 +46,6 @@ const translations: Translations = {
     "productionNotes": "Production Notes",
     "equipmentUsed": "Equipment Used",
     "contentFiles": "Content Files",
-    "tags": "Tags",
-    "tag": "Tag",
-    "tags": "Tags",
     "selectTags": "Select tags...",
     "selected": "selected",
     "submit": "Submit",
@@ -87,7 +83,6 @@ const translations: Translations = {
     "confirmAction": "Confirm Action",
     "name": "Name",
     "save": "Save",
-    "cancel": "Cancel",
     "enterName": "Enter name",
     "selectOption": "Select option",
     "manageContent": "Manage Content",
@@ -117,7 +112,9 @@ const translations: Translations = {
     "vlog": "Vlog",
     "interview": "Interview",
     "announcement": "Announcement",
-    "other": "Other"
+    "other": "Other",
+    "tag": "Tag",
+    "tags": "Tags"
   },
   id: {
     // Dashboard
@@ -155,9 +152,6 @@ const translations: Translations = {
     "productionNotes": "Catatan Produksi",
     "equipmentUsed": "Peralatan yang Digunakan",
     "contentFiles": "Berkas Konten",
-    "tags": "Tag",
-    "tag": "Tag",
-    "tags": "Tag",
     "selectTags": "Pilih tag...",
     "selected": "terpilih",
     "submit": "Kirim",
@@ -225,7 +219,9 @@ const translations: Translations = {
     "vlog": "Vlog",
     "interview": "Wawancara",
     "announcement": "Pengumuman",
-    "other": "Lainnya"
+    "other": "Lainnya",
+    "tag": "Tag",
+    "tags": "Tag"
   }
 };
 

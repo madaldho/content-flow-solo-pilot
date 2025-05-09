@@ -7,9 +7,25 @@
 import { useCustomOptions } from './CustomOptionsContext';
 
 // Inside the ContentProvider component, add:
-const customOptions = useCustomOptions();
+const { 
+  platforms, 
+  tags, 
+  addCustomPlatform, 
+  addCustomTag, 
+  updateCustomPlatform, 
+  updateCustomTag, 
+  removeCustomPlatform, 
+  removeCustomTag, 
+  resetCustomOptions 
+} = useCustomOptions();
 
 // Inside the object passed to ContentContext.Provider, add:
-...customOptions,
-
-// Then when a consumer uses useContent(), they'll have access to platform/tag management
+platforms,
+tags,
+addCustomPlatform,
+addCustomTag,
+updateCustomPlatform,
+updateCustomTag,
+removeCustomPlatform,
+removeCustomTag,
+resetCustomOptions,

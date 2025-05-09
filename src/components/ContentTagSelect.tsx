@@ -1,6 +1,6 @@
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Tags } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,18 +17,7 @@ import {
 } from "@/components/ui/popover";
 import { ContentTag } from "@/types/content";
 import { useLanguage } from "@/context/LanguageContext";
-
-const availableTags: ContentTag[] = [
-  "Education",
-  "Entertainment",
-  "Promotion",
-  "Tutorial",
-  "Review",
-  "Vlog",
-  "Interview",
-  "Announcement",
-  "Other",
-];
+import { useContent } from "@/context/ContentContext";
 
 interface ContentTagSelectProps {
   value: ContentTag[];
@@ -44,6 +33,21 @@ export function ContentTagSelect({
   onOpenChange,
 }: ContentTagSelectProps) {
   const { t } = useLanguage();
+  const { tags } = useContent();
+  
+  // Use custom tags from context or fallback to default list
+  const availableTags: ContentTag[] = Array.isArray(tags) ? tags : [
+    "Education",
+    "Entertainment",
+    "Promotion",
+    "Tutorial",
+    "Review",
+    "Vlog",
+    "Interview",
+    "Announcement",
+    "Other",
+  ];
+  
   // Ensure value is always an array
   const safeValue = Array.isArray(value) ? value : [];
   
