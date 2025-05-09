@@ -42,7 +42,7 @@ const translations: Translations = {
     "additionalInfo": "Additional information or context for this content.",
     "referenceLink": "Reference Link",
     "scriptFile": "Script File",
-    "script": "Script",
+    "scriptContent": "Script", // Changed this key to avoid duplication
     "productionNotes": "Production Notes",
     "equipmentUsed": "Equipment Used",
     "contentFiles": "Content Files",
@@ -110,7 +110,7 @@ const translations: Translations = {
     "additionalInfo": "Informasi atau konteks tambahan untuk konten ini.",
     "referenceLink": "Tautan Referensi",
     "scriptFile": "Berkas Naskah",
-    "script": "Naskah",
+    "scriptContent": "Naskah", // Changed this key to avoid duplication
     "productionNotes": "Catatan Produksi",
     "equipmentUsed": "Peralatan yang Digunakan",
     "contentFiles": "Berkas Konten",
