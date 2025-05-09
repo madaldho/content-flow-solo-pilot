@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 export type Language = "en" | "id";
@@ -12,6 +11,15 @@ type Translations = {
 // Translation dictionary
 const translations: Translations = {
   en: {
+    // App
+    "appName": "Content",
+    "appNameHighlight": "Flow",
+    "closeMenu": "Close Menu",
+    "openMenu": "Open Menu",
+    "searchButton": "Search",
+    "searchNotAvailable": "Search is not available on this page",
+    "errorUpdatingStatus": "Failed to update content status. Please try again.",
+    
     // Dashboard
     "dashboard": "Dashboard",
     "contentBoard": "Content Board",
@@ -19,9 +27,30 @@ const translations: Translations = {
     "addContent": "Add Content",
     "export": "Export",
     "quickActions": "Quick Actions",
-    "search": "Search",
+    "search": "Cari",
     "clearSearch": "Clear",
     "settings": "Settings",
+    "activeContent": "Active Content",
+    "itemsInProgress": "Items in progress",
+    "contentItemsBeingWorkedOn": "Content items being worked on",
+    "noActiveContentItems": "No active content items",
+    "publishedThisWeek": "Published This Week",
+    "last7Days": "Last 7 days",
+    "itemsPublishedCount": "{{count}} item{{count !== 1 ? 's' : ''}} published",
+    "noContentPublishedThisWeek": "No content published this week",
+    "bestPerformer": "Best Performer",
+    "mostViewedContent": "Most viewed content",
+    "noPublishedContentYet": "No published content yet",
+    "unfinished": "Unfinished",
+    "contentToComplete": "Content to complete",
+    "itemsAwaitingCompletion": "{{count}} item{{count !== 1 ? 's' : ''}} awaiting completion",
+    "allContentComplete": "All content is complete",
+    "contentStatusBreakdown": "Content Status Breakdown",
+    "noContentCreatedYet": "No content created yet. Start by adding your first content idea!",
+    "reminders": "Reminders",
+    "unfinishedContent": "Unfinished Content",
+    "unfinishedContentMessage": "You have {{count}} unfinished content item{{count !== 1 ? 's' : ''}}. Check your content board to continue working on them.",
+    "readyToPublishMessage": "You have {{count}} item{{count !== 1 ? 's' : ''}} ready to publish. Check your calendar to schedule them.",
     
     // Content Board
     "idea": "Idea",
@@ -37,6 +66,7 @@ const translations: Translations = {
     // Content Form
     "title": "Title",
     "platform": "Platform",
+    "platforms": "Platforms",
     "status": "Status",
     "publicationDate": "Publication Date",
     "notes": "Notes",
@@ -50,6 +80,12 @@ const translations: Translations = {
     "selectTags": "Select tags...",
     "selected": "selected",
     "submit": "Submit",
+    "selectPlatforms": "Select platforms...",
+    "searchPlatforms": "Search platforms...",
+    "noPlatformFound": "No platform found.",
+    "basicInfo": "Basic Information",
+    "contentDetails": "Content Details",
+    "production": "Production Information",
     
     // Content Details
     "edit": "Edit Content",
@@ -127,6 +163,15 @@ const translations: Translations = {
     "tags": "Tags"
   },
   id: {
+    // App
+    "appName": "Konten",
+    "appNameHighlight": "Flow",
+    "closeMenu": "Tutup Menu",
+    "openMenu": "Buka Menu",
+    "searchButton": "Cari",
+    "searchNotAvailable": "Pencarian tidak tersedia di halaman ini",
+    "errorUpdatingStatus": "Gagal memperbarui status konten. Silakan coba lagi.",
+    
     // Dashboard
     "dashboard": "Dashboard",
     "contentBoard": "Papan Konten",
@@ -137,6 +182,27 @@ const translations: Translations = {
     "search": "Cari",
     "clearSearch": "Hapus",
     "settings": "Pengaturan",
+    "activeContent": "Konten Aktif",
+    "itemsInProgress": "Item dalam proses",
+    "contentItemsBeingWorkedOn": "Item konten sedang dikerjakan",
+    "noActiveContentItems": "Tidak ada item konten aktif",
+    "publishedThisWeek": "Terpublikasi Minggu Ini",
+    "last7Days": "7 hari terakhir",
+    "itemsPublishedCount": "{{count}} item terpublikasi",
+    "noContentPublishedThisWeek": "Tidak ada konten yang dipublikasikan minggu ini",
+    "bestPerformer": "Performa Terbaik",
+    "mostViewedContent": "Konten paling banyak dilihat",
+    "noPublishedContentYet": "Belum ada konten yang dipublikasikan",
+    "unfinished": "Belum Selesai",
+    "contentToComplete": "Konten untuk diselesaikan",
+    "itemsAwaitingCompletion": "{{count}} item menunggu penyelesaian",
+    "allContentComplete": "Semua konten telah selesai",
+    "contentStatusBreakdown": "Pembagian Status Konten",
+    "noContentCreatedYet": "Belum ada konten yang dibuat. Mulai dengan menambahkan ide konten pertama Anda!",
+    "reminders": "Pengingat",
+    "unfinishedContent": "Konten Belum Selesai",
+    "unfinishedContentMessage": "Anda memiliki {{count}} item konten yang belum selesai. Periksa papan konten Anda untuk melanjutkan pekerjaan.",
+    "readyToPublishMessage": "Anda memiliki {{count}} item siap dipublikasikan. Periksa kalender Anda untuk menjadwalkannya.",
     
     // Content Board
     "idea": "Ide",
@@ -152,6 +218,7 @@ const translations: Translations = {
     // Content Form
     "title": "Judul",
     "platform": "Platform",
+    "platforms": "Platform",
     "status": "Status",
     "publicationDate": "Tanggal Publikasi",
     "notes": "Catatan",
@@ -165,6 +232,12 @@ const translations: Translations = {
     "selectTags": "Pilih tag...",
     "selected": "terpilih",
     "submit": "Kirim",
+    "selectPlatforms": "Pilih platform...",
+    "searchPlatforms": "Cari platform...",
+    "noPlatformFound": "Platform tidak ditemukan.",
+    "basicInfo": "Informasi Dasar",
+    "contentDetails": "Detail Konten",
+    "production": "Informasi Produksi",
     
     // Content Details
     "edit": "Edit Konten",
@@ -253,9 +326,9 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>(() => {
-    // Use browser language preference or default to English
+    // Default to Indonesian, use saved language if available
     const savedLanguage = localStorage.getItem('language') as Language;
-    return savedLanguage || ((navigator.language.startsWith('id') ? 'id' : 'en') as Language);
+    return savedLanguage || 'id';
   });
 
   useEffect(() => {

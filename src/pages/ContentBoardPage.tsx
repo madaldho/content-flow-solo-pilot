@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ContentBoard } from "@/components/ContentBoard";
 import { Header } from "@/components/Header";
@@ -8,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ContentForm } from "@/components/ContentForm";
-import { LanguageSelector } from "@/components/ui/language-selector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentItem, Platform } from "@/types/content";
 
@@ -71,10 +69,6 @@ export default function ContentBoardPage() {
           <h1 className="text-3xl font-bold">{t("contentBoard")}</h1>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <LanguageSelector 
-              language={useLanguage().language} 
-              setLanguage={useLanguage().setLanguage} 
-            />
             <Select 
               value={platformFilter} 
               onValueChange={(value) => handlePlatformFilterChange(value as Platform | "All")}

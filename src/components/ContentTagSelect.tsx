@@ -1,6 +1,5 @@
-
 import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +8,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -18,6 +18,8 @@ import {
 import { ContentTag } from "@/types/content";
 import { useLanguage } from "@/context/LanguageContext";
 import { useContent } from "@/context/ContentContext";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "./ui/input";
 
 interface ContentTagSelectProps {
   value: ContentTag[];
@@ -33,10 +35,11 @@ export function ContentTagSelect({
   onOpenChange,
 }: ContentTagSelectProps) {
   const { t } = useLanguage();
-  const { tags } = useContent();
+  const { tags, addCustomTag } = useContent();
+  const [inputValue, setInputValue] = React.useState<string>('');
   
   // Use custom tags from context or fallback to default list
-  const availableTags: ContentTag[] = Array.isArray(tags) ? tags : [
+  const defaultTags: ContentTag[] = [
     "Education",
     "Entertainment",
     "Promotion",
@@ -47,9 +50,17 @@ export function ContentTagSelect({
     "Announcement",
     "Other",
   ];
+
+  // Combine default tags with custom tags from context
+  const availableTags: ContentTag[] = React.useMemo(() => {
+    const customTags = Array.isArray(tags) ? tags : [];
+    return [...new Set([...defaultTags, ...customTags])];
+  }, [tags]);
   
   // Ensure value is always an array
-  const safeValue = Array.isArray(value) ? value : [];
+  const safeValue = React.useMemo(() => 
+    Array.isArray(value) ? value : []
+  , [value]);
   
   const toggleTag = (tag: ContentTag) => {
     if (safeValue.includes(tag)) {
@@ -59,45 +70,116 @@ export function ContentTagSelect({
     }
   };
 
+  const handleRemoveTag = (tag: ContentTag, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onValueChange(safeValue.filter((t) => t !== tag));
+  };
+
+  const handleAddCustomTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputValue.trim()) {
+      const newTag = inputValue.trim() as ContentTag;
+      
+      if (!availableTags.includes(newTag)) {
+        addCustomTag(newTag);
+      }
+      
+      if (!safeValue.includes(newTag)) {
+        onValueChange([...safeValue, newTag]);
+      }
+      
+      setInputValue('');
+      e.preventDefault();
+    }
+  };
+
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between rounded-xl border-input bg-background hover:bg-secondary/30 transition-colors"
-        >
-          {safeValue.length > 0
-            ? `${safeValue.length} ${t(safeValue.length > 1 ? "tags" : "tag")} ${t("selected")}`
-            : t("selectTags")}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0 rounded-xl shadow-lg border border-border/50 bg-popover/95 backdrop-blur-sm">
-        <Command>
-          <CommandInput placeholder={t("searchTags")} className="rounded-lg" />
-          <CommandEmpty>{t("noTagFound")}</CommandEmpty>
-          <CommandGroup className="max-h-60 overflow-auto">
-            {availableTags.map((tag) => (
-              <CommandItem
-                key={tag}
-                value={tag}
-                onSelect={() => toggleTag(tag)}
-                className="flex items-center gap-2 rounded-lg hover:bg-secondary/50 transition-colors"
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    safeValue.includes(tag) ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {t(tag.toLowerCase()) || tag}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <div className="space-y-2">
+      <Popover open={open} onOpenChange={onOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between rounded-xl border-input bg-background hover:bg-secondary/30 transition-colors"
+          >
+            {safeValue.length > 0
+              ? `${safeValue.length} ${t(safeValue.length > 1 ? "tags" : "tag")} ${t("selected")}`
+              : t("selectTags")}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0 rounded-xl shadow-lg border border-border/50 bg-popover/95 backdrop-blur-sm">
+          <Command>
+            <div className="flex items-center border-b p-2">
+              <CommandInput 
+                placeholder={t("searchTags")} 
+                className="rounded-lg flex-1" 
+                value={inputValue}
+                onValueChange={setInputValue}
+                onKeyDown={handleAddCustomTag}
+              />
+              {inputValue.trim() && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => {
+                    const newTag = inputValue.trim() as ContentTag;
+                    if (!availableTags.includes(newTag)) {
+                      addCustomTag(newTag);
+                    }
+                    if (!safeValue.includes(newTag)) {
+                      onValueChange([...safeValue, newTag]);
+                    }
+                    setInputValue('');
+                  }} 
+                  className="ml-2"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <CommandEmpty>{t("noTagFound")}</CommandEmpty>
+            <CommandList>
+              <CommandGroup className="max-h-60 overflow-auto p-2">
+                {availableTags.map((tag) => (
+                  <CommandItem
+                    key={tag}
+                    value={tag}
+                    onSelect={() => toggleTag(tag)}
+                    className="flex items-center gap-2 rounded-lg hover:bg-secondary/50 transition-colors mb-1"
+                  >
+                    <div className={cn(
+                      "flex items-center justify-center rounded-md border w-5 h-5",
+                      safeValue.includes(tag) ? "bg-primary border-primary" : "border-input"
+                    )}>
+                      {safeValue.includes(tag) && <Check className="h-3 w-3 text-primary-foreground" />}
+                    </div>
+                    <span>{t(tag.toLowerCase()) || tag}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      
+      {safeValue.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {safeValue.map((tag) => (
+            <Badge 
+              key={tag} 
+              variant="secondary"
+              className="flex items-center gap-1 px-2 py-1"
+            >
+              {t(tag.toLowerCase()) || tag}
+              <X 
+                className="h-3 w-3 cursor-pointer" 
+                onClick={(e) => handleRemoveTag(tag, e)} 
+              />
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useContent } from "@/context/ContentContext";
 import { ContentItem } from "@/types/content";
@@ -10,9 +9,10 @@ import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ContentForm } from "./ContentForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ExternalLink, File, FileText } from "lucide-react";
+import { ExternalLink, File, FileText, History } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { HistoryTimeline } from "./HistoryTimeline";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ContentDetailsProps {
   contentId: string | null;
@@ -21,7 +21,9 @@ interface ContentDetailsProps {
 
 export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
   const { getContentById, deleteContentItem, updateContentItem } = useContent();
+  const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   
   // If no content ID, return null
   if (!contentId) return null;
@@ -56,7 +58,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
       <Dialog open={true} onOpenChange={() => setIsEditing(false)}>
         <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Content</DialogTitle>
+            <DialogTitle>{t("edit")}</DialogTitle>
           </DialogHeader>
           <ContentForm 
             initialData={content} 
@@ -73,7 +75,18 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">{content.title}</DialogTitle>
-            <Badge className={statusColors[content.status]}>{content.status}</Badge>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+                className="flex items-center gap-1"
+              >
+                <History className="h-4 w-4" />
+                {t("statusHistory")}
+              </Button>
+              <Badge className={statusColors[content.status]}>{t(content.status.toLowerCase().replace(/\s+/g, ""))}</Badge>
+            </div>
           </div>
         </DialogHeader>
         
@@ -81,11 +94,11 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
           {/* Basic Information */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="text-sm font-semibold text-muted-foreground">Platform</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground">{t("platform")}</h3>
               <p>{content.platform}</p>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-muted-foreground">Created</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground">{t("created")}</h3>
               <p>{format(content.createdAt, "MMM dd, yyyy")}</p>
             </div>
           </div>
@@ -93,7 +106,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
           {/* Tags */}
           {content.tags && content.tags.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-2">Tags</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-2">{t("tags")}</h3>
               <div className="flex flex-wrap gap-2">
                 {content.tags.map((tag) => (
                   <Badge key={tag} variant="secondary">{tag}</Badge>
@@ -105,7 +118,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
           {/* Notes */}
           {content.notes && (
             <div>
-              <h3 className="text-sm font-semibold text-muted-foreground">Notes</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground">{t("notes")}</h3>
               <p className="whitespace-pre-wrap">{content.notes}</p>
             </div>
           )}
@@ -113,7 +126,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
           {/* Reference Link */}
           {content.referenceLink && (
             <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-1">Reference</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-1">{t("referenceLink")}</h3>
               <a 
                 href={content.referenceLink} 
                 target="_blank" 
@@ -133,7 +146,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
             <>
               <Separator />
               <div>
-                <h3 className="text-base font-semibold mb-2">Script/Outline</h3>
+                <h3 className="text-base font-semibold mb-2">{t("scriptContent")}</h3>
                 <Card className="p-4 bg-muted/50">
                   <div className="whitespace-pre-wrap">{content.script}</div>
                 </Card>
@@ -144,7 +157,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
           {/* Content Checklist */}
           {(content.status !== "Idea") && (
             <div>
-              <h3 className="text-base font-semibold mb-2">Content Checklist</h3>
+              <h3 className="text-base font-semibold mb-2">{t("contentChecklist")}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -163,7 +176,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
                     htmlFor="intro"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Introduction
+                    {t("intro")}
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -183,7 +196,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
                     htmlFor="mainPoints"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Main Points/Content
+                    {t("mainPoints")}
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -203,7 +216,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
                     htmlFor="callToAction"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Call to Action
+                    {t("callToAction")}
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -223,7 +236,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
                     htmlFor="outro"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Outro/Conclusion
+                    {t("outro")}
                   </label>
                 </div>
               </div>
@@ -235,7 +248,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
             <>
               <Separator />
               <div>
-                <h3 className="text-base font-semibold mb-1">Production Notes</h3>
+                <h3 className="text-base font-semibold mb-1">{t("productionNotes")}</h3>
                 <p className="whitespace-pre-wrap">{content.productionNotes}</p>
               </div>
             </>
@@ -244,7 +257,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
           {/* Equipment Used */}
           {content.equipmentUsed && content.equipmentUsed.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-1">Equipment Used</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-1">{t("equipmentUsed")}</h3>
               <div className="flex flex-wrap gap-2">
                 {content.equipmentUsed.map((equipment, index) => (
                   <Badge key={index} variant="outline">{equipment}</Badge>
@@ -256,7 +269,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
           {/* Content Files */}
           {content.contentFiles && content.contentFiles.length > 0 && (
             <div>
-              <h3 className="text-base font-semibold mb-2">Content Files</h3>
+              <h3 className="text-base font-semibold mb-2">{t("contentFiles")}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {content.contentFiles.map((file, index) => (
                   <div 
@@ -276,15 +289,15 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
             <>
               <Separator />
               <div>
-                <h3 className="text-base font-semibold">Publishing</h3>
+                <h3 className="text-base font-semibold">{t("publishing")}</h3>
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">Publication Date</h4>
+                    <h4 className="text-sm font-semibold text-muted-foreground">{t("publicationDate")}</h4>
                     <p>{format(content.publicationDate, "MMM dd, yyyy")}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">Status</h4>
-                    <Badge className={statusColors[content.status]}>{content.status}</Badge>
+                    <h4 className="text-sm font-semibold text-muted-foreground">{t("status")}</h4>
+                    <Badge className={statusColors[content.status]}>{t(content.status.toLowerCase().replace(/\s+/g, ""))}</Badge>
                   </div>
                 </div>
               </div>
@@ -296,22 +309,22 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
             <>
               <Separator />
               <div>
-                <h3 className="text-base font-semibold mb-2">Performance Metrics</h3>
+                <h3 className="text-base font-semibold mb-2">{t("performance")}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-muted/50 p-3 rounded-md text-center">
-                    <p className="text-sm text-muted-foreground">Views</p>
+                    <p className="text-sm text-muted-foreground">{t("views")}</p>
                     <p className="text-xl font-semibold">{content.metrics.views || 0}</p>
                   </div>
                   <div className="bg-muted/50 p-3 rounded-md text-center">
-                    <p className="text-sm text-muted-foreground">Likes</p>
+                    <p className="text-sm text-muted-foreground">{t("likes")}</p>
                     <p className="text-xl font-semibold">{content.metrics.likes || 0}</p>
                   </div>
                   <div className="bg-muted/50 p-3 rounded-md text-center">
-                    <p className="text-sm text-muted-foreground">Comments</p>
+                    <p className="text-sm text-muted-foreground">{t("comments")}</p>
                     <p className="text-xl font-semibold">{content.metrics.comments || 0}</p>
                   </div>
                   <div className="bg-muted/50 p-3 rounded-md text-center">
-                    <p className="text-sm text-muted-foreground">Shares</p>
+                    <p className="text-sm text-muted-foreground">{t("shares")}</p>
                     <p className="text-xl font-semibold">{content.metrics.shares || 0}</p>
                   </div>
                 </div>
@@ -319,7 +332,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
                 {/* Rating */}
                 {content.metrics.rating && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-semibold text-muted-foreground mb-1">Your Rating</h4>
+                    <h4 className="text-sm font-semibold text-muted-foreground mb-1">{t("rating")}</h4>
                     <p>{"⭐".repeat(content.metrics.rating)}</p>
                   </div>
                 )}
@@ -327,7 +340,7 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
                 {/* Insights */}
                 {content.metrics.insights && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-semibold text-muted-foreground mb-1">Performance Insights</h4>
+                    <h4 className="text-sm font-semibold text-muted-foreground mb-1">{t("insights")}</h4>
                     <p className="whitespace-pre-wrap">{content.metrics.insights}</p>
                   </div>
                 )}
@@ -336,8 +349,8 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
           )}
           
           {/* History Timeline */}
-          {content.history && (
-            <div className="bg-card p-4 rounded-xl border mt-6">
+          {showHistory && (
+            <div className="mt-4 border rounded-md p-3 bg-muted/30">
               <HistoryTimeline history={content.history} />
             </div>
           )}
@@ -346,23 +359,23 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
         <DialogFooter className="gap-2 sm:gap-0">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive">Delete</Button>
+              <Button variant="destructive">{t("delete")}</Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t("confirmDelete")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this content.
+                  {t("deleteWarning")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteContent}>Delete</AlertDialogAction>
+                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteContent}>{t("delete")}</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
           
-          <Button onClick={handleEditContent}>Edit Content</Button>
+          <Button onClick={handleEditContent}>{t("edit")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

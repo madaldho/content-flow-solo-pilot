@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { ContentItem, ContentStats, ContentStatus, ContentTag, HistoryEntry, Platform } from "@/types/content";
 import { toast } from "sonner";
@@ -163,7 +162,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const updateContentItem = async (id: string, updates: Partial<ContentItem>) => {
+  const updateContentItem = async (id: string, updates: Partial<ContentItem>): Promise<void> => {
     try {
       if (!isOnline) {
         toast.error("You're offline. Please connect to the internet to update content.");
@@ -184,16 +183,35 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
 
         updates.history = existingItem.history ? [...existingItem.history, historyEntry] : [historyEntry];
+        
+        // Log untuk debugging
+        console.log(`Moving item from ${existingItem.status} to ${updates.status}`);
+        console.log("History entry added:", historyEntry);
       }
-
-      // Update in database
-      await updateContentItemInDb(id, updates);
       
-      // Update local state with the complete item from server
-      const updatedItems = await fetchAllContentItems();
+      // Optimistic update for UI responsiveness
+      const updatedLocalItem = { ...existingItem, ...updates, updatedAt: new Date() };
+      const updatedItems = contentItems.map(item => 
+        item.id === id ? updatedLocalItem : item
+      );
       setContentItems(updatedItems);
-      
-      toast.success("Content updated");
+
+      try {
+        // Update in database
+        await updateContentItemInDb(id, updates);
+        
+        // Update local state with the complete item from server
+        const refreshedItems = await fetchAllContentItems();
+        setContentItems(refreshedItems);
+        
+        toast.success("Content updated");
+      } catch (err) {
+        // Revert optimistic update if database update fails
+        setContentItems(contentItems);
+        console.error("Database update failed:", err);
+        toast.error("Failed to update content in database");
+        throw err;
+      }
     } catch (err) {
       toast.error("Failed to update content");
       throw err;

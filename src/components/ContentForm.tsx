@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,13 +22,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react";
 import { Platform, ContentTag, ContentItem, ContentStatus } from "@/types/content";
 import { Badge } from "@/components/ui/badge";
 import { Tags } from "lucide-react";
 import { ContentTagSelect } from "./ContentTagSelect";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 
 const platforms: Platform[] = ["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"];
 const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
@@ -38,8 +38,10 @@ const formSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
   }),
-  platform: z.enum(["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"] as const),
-  status: z.enum(["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"] as const),
+  platforms: z.array(z.string()).min(1, {
+    message: "Please select at least one platform.",
+  }),
+  status: z.string(),
   publicationDate: z.date().optional(),
   notes: z.string().optional(),
   referenceLink: z.string().optional(),
@@ -71,12 +73,16 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
     initialData?.tags || []
   );
   const [tagsOpen, setTagsOpen] = useState(false);
+  const [platformsOpen, setPlatformsOpen] = useState(false);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(
+    initialData?.platforms ? initialData.platforms : initialData?.platform ? [initialData.platform] : []
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: initialData?.title || "",
-      platform: initialData?.platform || "YouTube",
+      platforms: initialData?.platforms || (initialData?.platform ? [initialData.platform] : []),
       status: initialData?.status || "Idea",
       publicationDate: initialData?.publicationDate,
       notes: initialData?.notes || "",
@@ -112,8 +118,9 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
 
       const contentData: Omit<ContentItem, "id" | "createdAt" | "updatedAt"> = {
         title: values.title,
-        platform: values.platform,
-        status: values.status,
+        platform: values.platforms[0], // Keep backward compatibility with single platform
+        platforms: values.platforms,   // Add multi-platform support
+        status: values.status as ContentStatus,
         tags: selectedTags,
         publicationDate: values.publicationDate,
         notes: values.notes,
@@ -156,244 +163,322 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
     }
   }
 
+  // Function to handle platform selection
+  const handlePlatformSelection = (platform: Platform) => {
+    let updatedPlatforms: Platform[];
+    
+    if (selectedPlatforms.includes(platform)) {
+      updatedPlatforms = selectedPlatforms.filter(p => p !== platform);
+    } else {
+      updatedPlatforms = [...selectedPlatforms, platform];
+    }
+    
+    setSelectedPlatforms(updatedPlatforms);
+    form.setValue("platforms", updatedPlatforms);
+    
+    // Validate after setting value
+    form.trigger("platforms");
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("title")}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t("title")} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="platform"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("platform")}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+        {/* Header section */}
+        <div className="bg-muted/30 p-4 rounded-lg border border-muted">
+          <h3 className="font-medium mb-4 text-primary">{t("basicInfo")}</h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("title")} <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("platform")} />
-                    </SelectTrigger>
+                    <Input placeholder={t("title")} {...field} className="rounded-lg" />
                   </FormControl>
-                  <SelectContent>
-                    {platforms.map((platform) => (
-                      <SelectItem key={platform} value={platform}>{platform}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("status")}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("status")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {statuses.map((status) => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="publicationDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>{t("publicationDate")}</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+  
+            <FormField
+              control={form.control}
+              name="platforms"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>{t("platforms")} <span className="text-destructive">*</span></FormLabel>
+                  <Popover open={platformsOpen} onOpenChange={setPlatformsOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          role="combobox"
+                          aria-expanded={platformsOpen}
+                          className={cn(
+                            "w-full justify-between rounded-lg",
+                            !field.value.length && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value.length > 0
+                            ? `${field.value.length} ${t(field.value.length > 1 ? "platforms" : "platform")} ${t("selected")}`
+                            : t("selectPlatforms")}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0 rounded-lg shadow-lg">
+                      <Command>
+                        <CommandInput placeholder={t("searchPlatforms")} />
+                        <CommandEmpty>{t("noPlatformFound")}</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {platforms.map((platform) => (
+                            <CommandItem
+                              key={platform}
+                              value={platform}
+                              onSelect={() => handlePlatformSelection(platform)}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedPlatforms.includes(platform) ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {platform}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {selectedPlatforms.map((platform) => (
+                      <Badge 
+                        key={platform} 
+                        variant="secondary" 
+                        className="flex items-center gap-1 rounded-md"
                       >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>{t("pickDate")}</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
+                        {platform}
+                        <X 
+                          className="h-3 w-3 cursor-pointer" 
+                          onClick={() => handlePlatformSelection(platform)} 
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+  
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("status")} <span className="text-destructive">*</span></FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="rounded-lg">
+                        <SelectValue placeholder={t("status")} />
+                      </SelectTrigger>
                     </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                    <SelectContent className="rounded-lg">
+                      {statuses.map((status) => (
+                        <SelectItem key={status} value={status}>{t(status.toLowerCase().replace(/\s+/g, ""))}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+  
+            <FormField
+              control={form.control}
+              name="publicationDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>{t("publicationDate")}</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal rounded-lg",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>{t("pickDate")}</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 rounded-lg" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        className="rounded-lg"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("notes")}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t("additionalInfo")}
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                {t("additionalInfo")}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="referenceLink"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("referenceLink")}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t("referenceLink")} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="scriptFile"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("scriptFile")}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t("scriptFile")} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="script"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("scriptContent")}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t("scriptContent")}
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="productionNotes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("productionNotes")}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t("productionNotes")}
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="equipmentUsed"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("equipmentUsed")}</FormLabel>
-              <FormControl>
-                <Input placeholder={t("equipmentUsed")} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="contentFiles"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("contentFiles")}</FormLabel>
-              <FormControl>
-                <Input placeholder={t("contentFiles")} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div>
-          <Label className="text-sm text-muted-foreground flex items-center gap-2">
-            <Tags className="w-4 h-4" />
-            {t("tags")}
-          </Label>
-          <ContentTagSelect
-            open={tagsOpen}
-            onOpenChange={setTagsOpen}
-            value={selectedTags}
-            onValueChange={setSelectedTags}
-          />
-          <div className="flex flex-wrap gap-1 mt-2">
-            {selectedTags.map((tag) => (
-              <Badge key={tag} variant="secondary">{tag}</Badge>
-            ))}
+          {/* Tags */}
+          <div className="mt-4">
+            <Label className="text-sm font-medium flex items-center gap-2 mb-2">
+              <Tags className="w-4 h-4" />
+              {t("tags")}
+            </Label>
+            <ContentTagSelect
+              open={tagsOpen}
+              onOpenChange={setTagsOpen}
+              value={selectedTags}
+              onValueChange={setSelectedTags}
+            />
           </div>
         </div>
 
-        <Button type="submit">{t("submit")}</Button>
+        {/* Content section */}
+        <div className="bg-muted/30 p-4 rounded-lg border border-muted">
+          <h3 className="font-medium mb-4 text-primary">{t("contentDetails")}</h3>
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("notes")}</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder={t("additionalInfo")}
+                    className="resize-none rounded-lg min-h-[100px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+  
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <FormField
+              control={form.control}
+              name="referenceLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("referenceLink")}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t("referenceLink")} {...field} className="rounded-lg" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+  
+            <FormField
+              control={form.control}
+              name="scriptFile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("scriptFile")}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t("scriptFile")} {...field} className="rounded-lg" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+  
+          <FormField
+            control={form.control}
+            name="script"
+            render={({ field }) => (
+              <FormItem className="mt-4">
+                <FormLabel>{t("scriptContent")}</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder={t("scriptContent")}
+                    className="resize-none rounded-lg min-h-[200px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Production section */}
+        <div className="bg-muted/30 p-4 rounded-lg border border-muted">
+          <h3 className="font-medium mb-4 text-primary">{t("production")}</h3>
+          <FormField
+            control={form.control}
+            name="productionNotes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("productionNotes")}</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder={t("productionNotes")}
+                    className="resize-none rounded-lg"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+  
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <FormField
+              control={form.control}
+              name="equipmentUsed"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("equipmentUsed")}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t("equipmentUsed")} {...field} className="rounded-lg" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+  
+            <FormField
+              control={form.control}
+              name="contentFiles"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("contentFiles")}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t("contentFiles")} {...field} className="rounded-lg" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+  
+        <div className="flex justify-end">
+          <Button 
+            type="submit" 
+            className="px-8 py-2 rounded-lg bg-primary hover:bg-primary/90 transition-colors"
+          >
+            {t("submit")}
+          </Button>
+        </div>
       </form>
     </Form>
   );

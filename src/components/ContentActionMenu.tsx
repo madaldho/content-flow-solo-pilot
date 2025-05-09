@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { MoreHorizontal, Edit, Trash2, MoveRight } from "lucide-react";
 import {
@@ -66,7 +65,9 @@ export function ContentActionMenu({
         {currentStatus && onMove && nextStatus[currentStatus] && (
           <DropdownMenuItem onClick={(e) => { 
             e.stopPropagation();
-            onMove(nextStatus[currentStatus]!);
+            const nextStat = nextStatus[currentStatus]!;
+            console.log(`Action Menu: Moving from ${currentStatus} to ${nextStat}`);
+            onMove(nextStat);
           }}>
             <MoveRight className="mr-2 h-4 w-4" />
             {t("moveTo")} {t(nextStatus[currentStatus]!.toLowerCase().replace(/\s+/g, ""))}

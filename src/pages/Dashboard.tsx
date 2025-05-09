@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,10 +10,12 @@ import { useContent } from "@/context/ContentContext";
 import { Header } from "@/components/Header";
 import { ContentDetails } from "@/components/ContentDetails";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { contentItems, exportToCSV } = useContent();
+  const { t } = useLanguage();
   const [isAddingContent, setIsAddingContent] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ContentItem[]>([]);
@@ -48,17 +49,17 @@ export default function Dashboard() {
       <main className="flex-1 container py-6 space-y-8">
         {/* Dashboard Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t("dashboard")}</h1>
           
           <div className="flex items-center gap-2">
             <Button onClick={() => exportToCSV()} variant="outline">
               <FileText className="h-4 w-4 mr-2" />
-              Export
+              {t("export")}
             </Button>
             
             <Button onClick={() => setIsAddingContent(true)}>
               <PlusIcon className="h-4 w-4 mr-2" />
-              Add Content
+              {t("addContent")}
             </Button>
           </div>
         </div>
@@ -68,7 +69,7 @@ export default function Dashboard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">
-                Search Results ({searchResults.length})
+                {t("searchResults")} ({searchResults.length})
               </h2>
               <Button
                 variant="ghost"
@@ -77,7 +78,7 @@ export default function Dashboard() {
                   setSearchResults([]);
                 }}
               >
-                Clear
+                {t("clearSearch")}
               </Button>
             </div>
             
@@ -99,7 +100,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="text-center py-10 text-muted-foreground">
-                No content matches your search
+                {t("noResults")}
               </div>
             )}
           </div>
@@ -112,7 +113,7 @@ export default function Dashboard() {
             
             {/* Quick Actions */}
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Quick Actions</h2>
+              <h2 className="text-xl font-semibold">{t("quickActions")}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <Button 
                   variant="outline" 
@@ -121,8 +122,8 @@ export default function Dashboard() {
                 >
                   <PlusIcon className="h-5 w-5" />
                   <div className="text-center">
-                    <div className="font-medium">Add New Content</div>
-                    <div className="text-sm text-muted-foreground">Create a new content idea</div>
+                    <div className="font-medium">{t("addContent")}</div>
+                    <div className="text-sm text-muted-foreground">{t("addIdea")}</div>
                   </div>
                 </Button>
                 
@@ -133,8 +134,8 @@ export default function Dashboard() {
                 >
                   <Search className="h-5 w-5" />
                   <div className="text-center">
-                    <div className="font-medium">Content Board</div>
-                    <div className="text-sm text-muted-foreground">Manage your content workflow</div>
+                    <div className="font-medium">{t("contentBoard")}</div>
+                    <div className="text-sm text-muted-foreground">{t("filterByPlatform")}</div>
                   </div>
                 </Button>
                 
@@ -145,8 +146,8 @@ export default function Dashboard() {
                 >
                   <Search className="h-5 w-5" />
                   <div className="text-center">
-                    <div className="font-medium">Publication Calendar</div>
-                    <div className="text-sm text-muted-foreground">Schedule your content</div>
+                    <div className="font-medium">{t("calendar")}</div>
+                    <div className="text-sm text-muted-foreground">{t("publicationDate")}</div>
                   </div>
                 </Button>
               </div>
@@ -160,7 +161,7 @@ export default function Dashboard() {
         <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
           <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Content</DialogTitle>
+              <DialogTitle>{t("addContent")}</DialogTitle>
             </DialogHeader>
             <ContentForm 
               onClose={() => setIsAddingContent(false)} 

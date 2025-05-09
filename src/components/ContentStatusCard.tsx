@@ -1,4 +1,3 @@
-
 import { ContentItem, ContentStatus } from "@/types/content";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,8 +53,38 @@ export function ContentStatusCard({ item, onClick }: ContentStatusCardProps) {
     }
   }, [item.platform]);
   
-  const handleMoveContent = (newStatus: ContentStatus) => {
-    updateContentItem(item.id, { status: newStatus });
+  const handleMoveContent = async (newStatus: ContentStatus) => {
+    console.log(`ContentStatusCard: Moving ${item.id} from ${item.status} to ${newStatus}`);
+    try {
+      // Tambahkan visual feedback
+      const itemEl = document.getElementById(`item-${item.id}`);
+      if (itemEl) {
+        itemEl.classList.add('updating');
+      }
+      
+      await updateContentItem(item.id, { status: newStatus });
+      
+      // Tambahkan efek sukses
+      if (itemEl) {
+        itemEl.classList.remove('updating');
+        itemEl.classList.add('update-success');
+        setTimeout(() => {
+          itemEl?.classList.remove('update-success');
+        }, 1000);
+      }
+      
+      console.log(`Content successfully moved to ${newStatus}`);
+    } catch (error) {
+      console.error("Error moving content:", error);
+      const itemEl = document.getElementById(`item-${item.id}`);
+      if (itemEl) {
+        itemEl.classList.remove('updating');
+        itemEl.classList.add('update-error');
+        setTimeout(() => {
+          itemEl?.classList.remove('update-error');
+        }, 1000);
+      }
+    }
   };
 
   const handleDeleteContent = () => {
@@ -64,6 +93,7 @@ export function ContentStatusCard({ item, onClick }: ContentStatusCardProps) {
 
   return (
     <Card 
+      id={`item-${item.id}`}
       className="mb-3 hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing card-hover rounded-xl overflow-hidden"
       onClick={onClick}
     >
