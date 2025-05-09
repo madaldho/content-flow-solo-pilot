@@ -27,7 +27,7 @@ interface ContentTagSelectProps {
 }
 
 export function ContentTagSelect({
-  value = [], // Provide default empty array to prevent undefined
+  value = [], // Default empty array
   onValueChange,
   open,
   onOpenChange,
@@ -35,8 +35,9 @@ export function ContentTagSelect({
   const { t } = useLanguage();
   const { tags } = useContent();
   
-  // Use custom tags from context or fallback to default list
-  const availableTags: ContentTag[] = Array.isArray(tags) ? tags : [
+  // Ensure we're working with arrays
+  const safeValue = Array.isArray(value) ? value : [];
+  const availableTags = Array.isArray(tags) ? tags : [
     "Education",
     "Entertainment",
     "Promotion",
@@ -47,9 +48,6 @@ export function ContentTagSelect({
     "Announcement",
     "Other",
   ];
-  
-  // Ensure value is always an array
-  const safeValue = Array.isArray(value) ? value : [];
   
   const toggleTag = (tag: ContentTag) => {
     if (safeValue.includes(tag)) {
@@ -84,15 +82,17 @@ export function ContentTagSelect({
                 key={tag}
                 value={tag}
                 onSelect={() => toggleTag(tag)}
-                className="flex items-center gap-2 rounded-lg hover:bg-secondary/50 transition-colors"
+                className="flex items-center gap-2 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer"
               >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    safeValue.includes(tag) ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {t(tag.toLowerCase()) || tag}
+                <div className="flex items-center w-full">
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      safeValue.includes(tag) ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {t(tag.toLowerCase()) || tag}
+                </div>
               </CommandItem>
             ))}
           </CommandGroup>
