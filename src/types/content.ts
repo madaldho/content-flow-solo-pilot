@@ -7,7 +7,8 @@ export type Platform =
   | "LinkedIn" 
   | "Blog" 
   | "Podcast" 
-  | "Other";
+  | "Other"
+  | string;  // Allow custom platforms
 
 export type ContentTag = 
   | "Education" 
@@ -18,7 +19,8 @@ export type ContentTag =
   | "Vlog" 
   | "Interview" 
   | "Announcement" 
-  | "Other";
+  | "Other"
+  | string;  // Allow custom tags
 
 export type ContentStatus = 
   | "Idea" 

@@ -36,16 +36,22 @@ export async function fetchAllContentItems(): Promise<ContentItem[]> {
       (typeof item.metrics === 'object' ? item.metrics : JSON.parse(String(item.metrics))) : 
       {};
 
-    // Parse history with proper type checking
-    const history: HistoryEntry[] = item.history ? 
-      (typeof item.history === 'object' ? item.history : JSON.parse(String(item.history)))
-        .map((entry: any) => ({
+    // Parse history with proper type checking - handle if the field doesn't exist
+    let history: HistoryEntry[] = [];
+    try {
+      if (item.history) {
+        const parsedHistory = typeof item.history === 'object' ? item.history : JSON.parse(String(item.history));
+        history = Array.isArray(parsedHistory) ? parsedHistory.map((entry: any) => ({
           timestamp: new Date(entry.timestamp),
           previousStatus: entry.previousStatus,
-          newStatus: entry.newStatus,
+          newStatus: entry.newStatus as ContentStatus,
           changedBy: entry.changedBy
-        })) : 
-      [];
+        })) : [];
+      }
+    } catch (e) {
+      console.error('Error parsing history:', e);
+      history = [];
+    }
 
     return {
       id: item.id,
@@ -89,7 +95,7 @@ export async function addContentItem(item: Omit<ContentItem, "id" | "createdAt" 
     equipment_used: item.equipmentUsed,
     content_files: item.contentFiles,
     metrics: item.metrics,
-    history: item.history
+    history: item.history || []
   };
 
   const { data, error } = await supabase

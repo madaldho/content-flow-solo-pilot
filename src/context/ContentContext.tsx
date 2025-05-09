@@ -1,5 +1,6 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { ContentItem, ContentStats, ContentStatus, HistoryEntry } from "@/types/content";
+import { ContentItem, ContentStats, ContentStatus, ContentTag, HistoryEntry, Platform } from "@/types/content";
 import { toast } from "sonner";
 import { fetchAllContentItems, addContentItem as addContentItemToDb, updateContentItem as updateContentItemInDb, deleteContentItem as deleteContentItemFromDb } from "@/services/contentService";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +18,7 @@ interface ContentContextType {
   updateCustomTag: (name: string, newName: string) => void;
   removeCustomPlatform: (name: string) => void;
   removeCustomTag: (name: string) => void;
-  resetCustomOptions: () => void;
+  resetCustomOptions: (type: "platform" | "tag") => void;
   addContentItem: (item: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist" | "history">) => Promise<string>;
   updateContentItem: (id: string, updates: Partial<ContentItem>) => Promise<void>;
   deleteContentItem: (id: string) => Promise<void>;

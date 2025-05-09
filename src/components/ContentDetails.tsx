@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useContent } from "@/context/ContentContext";
 import { ContentItem } from "@/types/content";
@@ -335,9 +336,9 @@ export function ContentDetails({ contentId, onClose }: ContentDetailsProps) {
           )}
           
           {/* History Timeline */}
-          {item.history && (
+          {content.history && (
             <div className="bg-card p-4 rounded-xl border mt-6">
-              <HistoryTimeline history={item.history} />
+              <HistoryTimeline history={content.history} />
             </div>
           )}
         </div>
