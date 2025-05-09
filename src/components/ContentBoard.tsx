@@ -18,7 +18,7 @@ interface ContentBoardColumnProps {
   index: number;
 }
 
-function ContentBoardColumn({ status, items, onItemClick, onAddItem, index }: ContentBoardColumnProps) {
+function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index }: ContentBoardColumnProps) {
   const { t } = useLanguage();
   
   const statusColors: Record<ContentStatus, string> = {
@@ -30,15 +30,18 @@ function ContentBoardColumn({ status, items, onItemClick, onAddItem, index }: Co
     "Published": "border-status-published"
   };
 
+  // Ensure items is always an array
+  const safeItems = Array.isArray(items) ? items : [];
+
   return (
     <div className="kanban-column">
       <div className={`flex items-center justify-between p-2 border-b-2 ${statusColors[status]} mb-3 sticky top-0 bg-background z-10`}>
         <h3 className="font-medium">{t(status.toLowerCase().replace(/\s+/g, ""))}</h3>
-        <span className="text-xs px-2 py-1 rounded-full bg-muted">{items.length}</span>
+        <span className="text-xs px-2 py-1 rounded-full bg-muted">{safeItems.length}</span>
       </div>
       
       <div className="space-y-3 mb-4 flex-1">
-        {items.map((item) => (
+        {safeItems.map((item) => (
           <div
             key={item.id}
             className="kanban-card transition-all duration-200 cursor-pointer"
@@ -57,7 +60,7 @@ function ContentBoardColumn({ status, items, onItemClick, onAddItem, index }: Co
           </div>
         ))}
         
-        {items.length === 0 && (
+        {safeItems.length === 0 && (
           <div className="text-center p-4 text-sm text-muted-foreground">
             {t("noContent")}
           </div>
@@ -112,7 +115,7 @@ export function ContentBoard() {
           >
             <ContentBoardColumn
               status={status}
-              items={getContentByStatus(status)}
+              items={getContentByStatus(status) || []}
               onItemClick={(id) => setSelectedContentId(id)}
               onAddItem={status === "Idea" ? () => setIsAddingContent(true) : undefined}
               index={index}

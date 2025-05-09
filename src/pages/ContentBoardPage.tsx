@@ -22,7 +22,8 @@ export default function ContentBoardPage() {
   const [isSearching, setIsSearching] = useState(false);
   
   // Get unique platforms from content items
-  const platforms = ["All", ...Array.from(new Set(contentItems.map(item => item.platform)))] as (Platform | "All")[];
+  const allContentItems = contentItems || [];
+  const platforms = ["All", ...Array.from(new Set(allContentItems.map(item => item.platform)))] as (Platform | "All")[];
   
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -33,7 +34,7 @@ export default function ContentBoardPage() {
     }
     
     const lowerQuery = query.toLowerCase();
-    let results = contentItems.filter(item => 
+    let results = allContentItems.filter(item => 
       item.title.toLowerCase().includes(lowerQuery) ||
       item.platform.toLowerCase().includes(lowerQuery) ||
       item.status.toLowerCase().includes(lowerQuery) ||
