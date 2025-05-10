@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ContentBoard } from "@/components/ContentBoard";
 import { Header } from "@/components/Header";
@@ -6,11 +5,10 @@ import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ContentForm } from "@/components/ContentForm";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentItem, Platform } from "@/types/content";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function ContentBoardPage() {
   const { contentItems } = useContent();
@@ -20,7 +18,6 @@ export default function ContentBoardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ContentItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const isMobile = useIsMobile();
   
   // Ensure contentItems is always an array
   const allContentItems = Array.isArray(contentItems) ? contentItems : [];
@@ -64,12 +61,12 @@ export default function ContentBoardPage() {
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-secondary/20">
+    <div className="min-h-screen flex flex-col">
       <Header onSearch={handleSearch} />
       
       <main className="flex-1 container py-6 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glassmorphism p-4 rounded-xl shadow-sm">
-          <h1 className="text-3xl font-elegant">{t("contentBoard")}</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-3xl font-bold">{t("contentBoard")}</h1>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
             <Select 
@@ -107,8 +104,7 @@ export default function ContentBoardPage() {
         <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
           <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto glassmorphism">
             <DialogHeader>
-              <DialogTitle className="font-elegant text-2xl">{t("addContent")}</DialogTitle>
-              <DialogDescription>{t("addContentDescription")}</DialogDescription>
+              <DialogTitle>{t("addContent")}</DialogTitle>
             </DialogHeader>
             <ContentForm 
               onClose={() => setIsAddingContent(false)} 

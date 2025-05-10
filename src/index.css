@@ -111,12 +111,32 @@
   @apply transition-all duration-200 hover:shadow-md hover:translate-y-[-2px];
 }
 
+/* Status indicators */
+.bg-status-idea {
+  @apply bg-status-idea;
+}
+.bg-status-script {
+  @apply bg-status-script;
+}
+.bg-status-recorded {
+  @apply bg-status-recorded;
+}
+.bg-status-edited {
+  @apply bg-status-edited;
+}
+.bg-status-ready {
+  @apply bg-status-ready;
+}
+.bg-status-published {
+  @apply bg-status-published;
+}
+
 /* Drag and drop visual feedback */
 .updating {
   @apply opacity-50 scale-95 transition-all;
 }
 .update-success {
-  @apply ring-2 ring-green-500/70 transition-all;
+  @apply ring-2 ring-status-ready/70 transition-all;
 }
 .update-error {
   @apply ring-2 ring-destructive/70 transition-all;
@@ -144,69 +164,4 @@
 /* Glassmorphism effect */
 .glassmorphism {
   @apply bg-background/80 backdrop-blur-md border shadow-md;
-}
-
-/* Status color classes - defined directly instead of using @apply */
-.status-idea {
-  background-color: hsl(var(--status-idea));
-}
-.status-script {
-  background-color: hsl(var(--status-script));
-}
-.status-recorded {
-  background-color: hsl(var(--status-recorded));
-}
-.status-edited {
-  background-color: hsl(var(--status-edited));
-}
-.status-ready {
-  background-color: hsl(var(--status-ready));
-}
-.status-published {
-  background-color: hsl(var(--status-published));
-}
-
-/* Card gradient effects */
-.card-gradient-1 {
-  background: linear-gradient(225deg, #FFE29F 0%, #FFA99F 48%, #FF719A 100%);
-}
-.card-gradient-2 {
-  background: linear-gradient(90deg, hsla(221, 45%, 73%, 1) 0%, hsla(220, 78%, 29%, 1) 100%);
-}
-.card-gradient-3 {
-  background: linear-gradient(90deg, hsla(39, 100%, 77%, 1) 0%, hsla(22, 90%, 57%, 1) 100%);
-}
-.card-gradient-4 {
-  background: linear-gradient(90deg, hsla(46, 73%, 75%, 1) 0%, hsla(176, 73%, 88%, 1) 100%);
-}
-.card-gradient-5 {
-  background: linear-gradient(90deg, hsla(59, 86%, 68%, 1) 0%, hsla(134, 36%, 53%, 1) 100%);
-}
-.card-gradient-6 {
-  background: linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%);
-}
-
-/* Numbered list styling */
-.numbered-item {
-  counter-increment: item-counter;
-  @apply relative;
-}
-.numbered-item:before {
-  content: counter(item-counter);
-  @apply absolute -left-5 -top-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-primary rounded-full;
-}
-.numbered-list {
-  counter-reset: item-counter;
-  @apply pl-6;
-}
-
-/* Mobile optimizations */
-.mobile-dropdown {
-  @apply w-full transition-all duration-300 overflow-hidden;
-}
-.mobile-dropdown.collapsed {
-  @apply max-h-0;
-}
-.mobile-dropdown.expanded {
-  @apply max-h-[500px];
 }

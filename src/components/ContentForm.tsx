@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -31,8 +30,8 @@ import { ContentTagSelect } from "./ContentTagSelect";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { MetricsImporter } from "./MetricsImporter";
 
+const platforms: Platform[] = ["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"];
 const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
 
 const formSchema = z.object({
@@ -68,7 +67,7 @@ interface ContentFormProps {
 }
 
 export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps) {
-  const { addContentItem, updateContentItem, platforms: availablePlatforms } = useContent();
+  const { addContentItem, updateContentItem } = useContent();
   const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<ContentTag[]>(
     initialData?.tags || []
@@ -78,8 +77,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(
     initialData?.platforms ? initialData.platforms : initialData?.platform ? [initialData.platform] : []
   );
-  const [showMetricsImporter, setShowMetricsImporter] = useState(false);
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -97,16 +95,6 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       metrics: initialData?.metrics,
     },
   });
-
-  // Show metrics importer when status is Published
-  useEffect(() => {
-    const currentStatus = form.watch("status");
-    if (currentStatus === "Published") {
-      setShowMetricsImporter(true);
-    } else {
-      setShowMetricsImporter(false);
-    }
-  }, [form.watch("status")]);
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -149,7 +137,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       if (initialData) {
         // Update existing content
         await updateContentItem(initialData.id, contentData);
-        toast.success(t("contentUpdatedSuccessfully"));
+        toast.success("Content updated successfully");
       } else {
         // Add new content
         const id = await addContentItem(contentData);
@@ -171,7 +159,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error(t("failedToSaveContent"));
+      toast.error("Failed to save content");
     }
   }
 
@@ -190,14 +178,6 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
     
     // Validate after setting value
     form.trigger("platforms");
-  };
-  
-  // Handle metrics import
-  const handleMetricsImported = (metrics: any) => {
-    form.setValue("metrics", {
-      ...form.getValues("metrics"),
-      ...metrics
-    });
   };
 
   return (
@@ -251,7 +231,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                         <CommandInput placeholder={t("searchPlatforms")} />
                         <CommandEmpty>{t("noPlatformFound")}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
-                          {availablePlatforms.map((platform) => (
+                          {platforms.map((platform) => (
                             <CommandItem
                               key={platform}
                               value={platform}
@@ -490,122 +470,6 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
             />
           </div>
         </div>
-        
-        {/* Metrics section - show when status is Published */}
-        {showMetricsImporter && (
-          <div className="bg-muted/30 p-4 rounded-lg border border-muted">
-            <h3 className="font-medium mb-4 text-primary">{t("performanceMetrics")}</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="metrics.views"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("views")}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
-                        value={field.value || ""} 
-                        onChange={e => form.setValue("metrics.views", parseInt(e.target.value) || undefined)} 
-                        className="rounded-lg"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="metrics.likes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("likes")}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
-                        value={field.value || ""} 
-                        onChange={e => form.setValue("metrics.likes", parseInt(e.target.value) || undefined)} 
-                        className="rounded-lg"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="metrics.comments"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("comments")}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
-                        value={field.value || ""} 
-                        onChange={e => form.setValue("metrics.comments", parseInt(e.target.value) || undefined)} 
-                        className="rounded-lg"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="metrics.shares"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("shares")}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
-                        value={field.value || ""} 
-                        onChange={e => form.setValue("metrics.shares", parseInt(e.target.value) || undefined)} 
-                        className="rounded-lg"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <FormField
-              control={form.control}
-              name="metrics.insights"
-              render={({ field }) => (
-                <FormItem className="mt-4">
-                  <FormLabel>{t("insights")}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder={t("insightsPlaceholder")}
-                      value={field.value || ""}
-                      onChange={e => form.setValue("metrics.insights", e.target.value)}
-                      className="resize-none rounded-lg"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Metrics importer component */}
-            {selectedPlatforms.length > 0 && (
-              <MetricsImporter
-                onMetricsImported={handleMetricsImported}
-                platform={selectedPlatforms[0]}
-              />
-            )}
-          </div>
-        )}
   
         <div className="flex justify-end">
           <Button 
