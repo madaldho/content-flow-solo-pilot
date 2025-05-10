@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -7,9 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { ContentForm } from "./ContentForm";
 import { ContentDetails } from "./ContentDetails";
-import { PlusIcon, ChevronDown, ChevronUp } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ContentBoardColumnProps {
   status: ContentStatus;
@@ -35,8 +35,6 @@ function ContentBoardColumn({
   isDraggingOver
 }: ContentBoardColumnProps) {
   const { t } = useLanguage();
-  const isMobile = useIsMobile();
-  const [isExpanded, setIsExpanded] = useState(!isMobile);
   
   const statusColors: Record<ContentStatus, string> = {
     "Idea": "border-status-idea",
@@ -47,26 +45,8 @@ function ContentBoardColumn({
     "Published": "border-status-published"
   };
 
-  const gradientClasses: Record<number, string> = {
-    0: "card-gradient-1",
-    1: "card-gradient-2",
-    2: "card-gradient-3",
-    3: "card-gradient-4",
-    4: "card-gradient-5",
-    5: "card-gradient-6"
-  };
-
   // Ensure items is always an array
   const safeItems = Array.isArray(items) ? items : [];
-
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
-
-  // Reset expansion state when switching between mobile and desktop
-  useEffect(() => {
-    setIsExpanded(!isMobile);
-  }, [isMobile]);
 
   return (
     <div 
@@ -75,63 +55,43 @@ function ContentBoardColumn({
       onDrop={(e) => onDrop(e, status)}
       data-status={status}
     >
-      <div 
-        className={`flex items-center justify-between p-3 ${statusColors[status]} mb-0 sticky top-0 bg-background/90 backdrop-blur-sm z-10 font-display rounded-t-lg cursor-pointer`}
-        onClick={isMobile ? toggleExpand : undefined}
-      >
-        <div className="flex items-center">
-          <div className={`w-2 h-2 rounded-full bg-status-${status.toLowerCase().replace(/\s+/g, "")} mr-2`}></div>
-          <h3 className="font-medium">{t(status.toLowerCase().replace(/\s+/g, ""))}</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs px-2 py-1 rounded-full bg-muted">{safeItems.length}</span>
-          {isMobile && (
-            isExpanded ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            )
-          )}
-        </div>
+      <div className={`flex items-center justify-between p-3 border-b-2 ${statusColors[status]} mb-3 sticky top-0 bg-background z-10 font-display`}>
+        <h3 className="font-medium">{t(status.toLowerCase().replace(/\s+/g, ""))}</h3>
+        <span className="text-xs px-2 py-1 rounded-full bg-muted">{safeItems.length}</span>
       </div>
       
-      <div 
-        className={`space-y-3 mb-4 flex-1 p-2 mobile-dropdown ${isMobile ? (isExpanded ? 'expanded' : 'collapsed') : ''}`}
-      >
-        {safeItems.length > 0 ? (
-          <div className="numbered-list">
-            {safeItems.map((item, itemIndex) => (
-              <div
-                key={item.id}
-                id={`wrapper-${item.id}`}
-                className="kanban-card numbered-item transition-all duration-200 cursor-pointer mb-3"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onItemClick(item.id);
-                }}
-                draggable={true}
-                onDragStart={(e) => {
-                  console.log(`Starting drag for item ${item.id} with status ${item.status}`);
-                  e.currentTarget.classList.add('animate-drag-start');
-                  onDragStart(e, item);
-                }}
-                onDragEnd={(e) => {
-                  e.currentTarget.classList.remove('animate-drag-start');
-                }}
-              >
-                <ContentStatusCard 
-                  key={item.id} 
-                  item={item} 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onItemClick(item.id);
-                  }}
-                  gradientClass={gradientClasses[itemIndex % 6]}
-                />
-              </div>
-            ))}
+      <div className="space-y-3 mb-4 flex-1 p-2">
+        {safeItems.map((item) => (
+          <div
+            key={item.id}
+            id={`wrapper-${item.id}`}
+            className="kanban-card transition-all duration-200 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onItemClick(item.id);
+            }}
+            draggable={true}
+            onDragStart={(e) => {
+              console.log(`Starting drag for item ${item.id} with status ${item.status}`);
+              e.currentTarget.classList.add('animate-drag-start');
+              onDragStart(e, item);
+            }}
+            onDragEnd={(e) => {
+              e.currentTarget.classList.remove('animate-drag-start');
+            }}
+          >
+            <ContentStatusCard 
+              key={item.id} 
+              item={item} 
+              onClick={(e) => {
+                e.stopPropagation();
+                onItemClick(item.id);
+              }}
+            />
           </div>
-        ) : (
+        ))}
+        
+        {safeItems.length === 0 && (
           <div className="text-center p-6 text-sm text-muted-foreground rounded-lg border-2 border-dashed border-muted">
             {t("noContent")}
           </div>
@@ -142,9 +102,7 @@ function ContentBoardColumn({
         <Button 
           variant="outline" 
           className="w-full mb-2 rounded-xl hover:bg-primary/10 font-display" 
-          onClick={() => {
-            if (onAddItem) onAddItem();
-          }}
+          onClick={onAddItem}
         >
           <PlusIcon className="h-4 w-4 mr-2" /> {t("addIdea")}
         </Button>
@@ -161,7 +119,6 @@ export function ContentBoard() {
   const [dragError, setDragError] = useState<string | null>(null);
   const [draggingOverStatus, setDraggingOverStatus] = useState<ContentStatus | null>(null);
   const { t } = useLanguage();
-  const isMobile = useIsMobile();
 
   // Status columns for the board
   const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
@@ -220,7 +177,7 @@ export function ContentBoard() {
           });
         } catch (err) {
           console.error("Error updating item status:", err);
-          setDragError(err instanceof Error ? err.message : "Error updating status");
+          setDragError(err instanceof Error ? err.message : "Gagal memperbarui status");
           
           if (itemEl) {
             itemEl.classList.remove('updating');
@@ -238,7 +195,7 @@ export function ContentBoard() {
       }
     } catch (error) {
       console.error("Error in drag and drop:", error);
-      setDragError("Error processing drag and drop");
+      setDragError("Terjadi kesalahan saat memproses drag and drop");
     } finally {
       setIsDragging(false);
     }
@@ -302,11 +259,11 @@ export function ContentBoard() {
         </div>
       )}
       
-      <div className={`flex ${isMobile ? 'flex-col' : 'overflow-x-auto'} gap-4 pb-4 ${isMobile ? '' : 'scrollbar-hide'} h-[calc(100vh-12rem)] font-sans`}>
+      <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide h-[calc(100vh-12rem)] font-sans">
         {statuses.map((status, index) => (
           <div 
             key={status}
-            className={`${isMobile ? 'w-full' : 'min-w-[300px]'} transition-all bg-background/70 backdrop-blur-sm p-2 rounded-lg border ${isDragging ? 'drop-target' : ''}`}
+            className={`min-w-[320px] transition-all bg-background p-2 rounded-lg border ${isDragging ? 'drop-target' : ''}`}
           >
             <ContentBoardColumn
               status={status}

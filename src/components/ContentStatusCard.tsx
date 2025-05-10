@@ -12,10 +12,9 @@ import { History } from "lucide-react";
 interface ContentStatusCardProps {
   item: ContentItem;
   onClick: () => void;
-  gradientClass?: string;
 }
 
-export function ContentStatusCard({ item, onClick, gradientClass }: ContentStatusCardProps) {
+export function ContentStatusCard({ item, onClick }: ContentStatusCardProps) {
   const { updateContentItem, deleteContentItem } = useContent();
   const { t } = useLanguage();
   
@@ -98,18 +97,13 @@ export function ContentStatusCard({ item, onClick, gradientClass }: ContentStatu
   return (
     <Card 
       id={`item-${item.id}`}
-      className={`mb-0 hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing card-hover rounded-xl overflow-hidden ${gradientClass ? 'border-0' : ''}`}
+      className="mb-3 hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing card-hover rounded-xl overflow-hidden"
       onClick={onClick}
     >
-      {gradientClass ? (
-        <div className={`h-1.5 w-full ${gradientClass} opacity-70`}></div>
-      ) : (
-        <div className={`h-1.5 w-full ${statusColors[item.status]}`}></div>
-      )}
-      
+      <div className={`h-1.5 w-full ${statusColors[item.status]}`}></div>
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-base font-medium line-clamp-1 font-elegant">
+          <CardTitle className="text-base font-medium line-clamp-1">
             {item.title}
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -124,13 +118,12 @@ export function ContentStatusCard({ item, onClick, gradientClass }: ContentStatu
           </div>
         </div>
       </CardHeader>
-      
       <CardContent className="p-4 pt-0 space-y-2">
         <div className="flex justify-between items-center text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <span>{dateToDisplay}</span>
             {hasHistory && (
-              <History className="h-3.5 w-3.5 ml-1 text-primary" aria-label={t("hasHistory")} />
+              <History className="h-3.5 w-3.5 ml-1 text-primary" title={t("hasHistory")} />
             )}
           </div>
           {item.tags && item.tags.length > 0 && (
