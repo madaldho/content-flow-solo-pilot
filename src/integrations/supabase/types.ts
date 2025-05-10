@@ -78,6 +78,7 @@ export type Database = {
           content_files: string[] | null
           created_at: string
           equipment_used: string[] | null
+          history: Json | null
           id: string
           metrics: Json | null
           notes: string | null
@@ -97,6 +98,7 @@ export type Database = {
           content_files?: string[] | null
           created_at?: string
           equipment_used?: string[] | null
+          history?: Json | null
           id?: string
           metrics?: Json | null
           notes?: string | null
@@ -116,6 +118,7 @@ export type Database = {
           content_files?: string[] | null
           created_at?: string
           equipment_used?: string[] | null
+          history?: Json | null
           id?: string
           metrics?: Json | null
           notes?: string | null

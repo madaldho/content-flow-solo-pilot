@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ContentStatus, ContentItem } from "@/types/content";
@@ -19,9 +20,20 @@ interface ContentBoardColumnProps {
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, status: ContentStatus) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, item: ContentItem) => void;
+  isDraggingOver: boolean;
 }
 
-function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index, onDragOver, onDrop, onDragStart }: ContentBoardColumnProps) {
+function ContentBoardColumn({ 
+  status, 
+  items = [], 
+  onItemClick, 
+  onAddItem, 
+  index, 
+  onDragOver, 
+  onDrop, 
+  onDragStart,
+  isDraggingOver
+}: ContentBoardColumnProps) {
   const { t } = useLanguage();
   
   const statusColors: Record<ContentStatus, string> = {
@@ -38,16 +50,17 @@ function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index,
 
   return (
     <div 
-      className="kanban-column h-full"
+      className={`kanban-column h-full rounded-lg transition-all duration-300 ${isDraggingOver ? 'ring-2 ring-primary/50 bg-primary/5 animate-drag-over' : ''}`}
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, status)}
+      data-status={status}
     >
-      <div className={`flex items-center justify-between p-2 border-b-2 ${statusColors[status]} mb-3 sticky top-0 bg-background z-10`}>
+      <div className={`flex items-center justify-between p-3 border-b-2 ${statusColors[status]} mb-3 sticky top-0 bg-background z-10 font-display`}>
         <h3 className="font-medium">{t(status.toLowerCase().replace(/\s+/g, ""))}</h3>
         <span className="text-xs px-2 py-1 rounded-full bg-muted">{safeItems.length}</span>
       </div>
       
-      <div className="space-y-3 mb-4 flex-1">
+      <div className="space-y-3 mb-4 flex-1 p-2">
         {safeItems.map((item) => (
           <div
             key={item.id}
@@ -60,7 +73,11 @@ function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index,
             draggable={true}
             onDragStart={(e) => {
               console.log(`Starting drag for item ${item.id} with status ${item.status}`);
+              e.currentTarget.classList.add('animate-drag-start');
               onDragStart(e, item);
+            }}
+            onDragEnd={(e) => {
+              e.currentTarget.classList.remove('animate-drag-start');
             }}
           >
             <ContentStatusCard 
@@ -75,7 +92,7 @@ function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index,
         ))}
         
         {safeItems.length === 0 && (
-          <div className="text-center p-4 text-sm text-muted-foreground">
+          <div className="text-center p-6 text-sm text-muted-foreground rounded-lg border-2 border-dashed border-muted">
             {t("noContent")}
           </div>
         )}
@@ -84,7 +101,7 @@ function ContentBoardColumn({ status, items = [], onItemClick, onAddItem, index,
       {status === "Idea" && onAddItem && (
         <Button 
           variant="outline" 
-          className="w-full mb-2 rounded-xl hover:bg-primary/10" 
+          className="w-full mb-2 rounded-xl hover:bg-primary/10 font-display" 
           onClick={onAddItem}
         >
           <PlusIcon className="h-4 w-4 mr-2" /> {t("addIdea")}
@@ -100,14 +117,29 @@ export function ContentBoard() {
   const [isAddingContent, setIsAddingContent] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragError, setDragError] = useState<string | null>(null);
+  const [draggingOverStatus, setDraggingOverStatus] = useState<ContentStatus | null>(null);
   const { t } = useLanguage();
 
   // Status columns for the board
   const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
   
+  // Add an effect to show the history update when a card is moved
+  useEffect(() => {
+    const handleHistoryUpdate = (itemId: string) => {
+      console.log(`History updated for item ${itemId}`);
+    };
+
+    // Cleanup function
+    return () => {
+      // Any cleanup code if necessary
+    };
+  }, []);
+  
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>, targetStatus: ContentStatus) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    setDraggingOverStatus(null);
     
     try {
       const data = e.dataTransfer.getData("application/json");
@@ -118,10 +150,8 @@ export function ContentBoard() {
       const sourceStatus = parsedData.sourceStatus;
       
       if (sourceStatus !== targetStatus && itemId) {
-        // Log untuk debugging
-        console.log(`Trying to move item ${itemId} from ${sourceStatus} to ${targetStatus}`);
+        console.log(`Moving item ${itemId} from ${sourceStatus} to ${targetStatus}`);
         
-        // Temukan elemen item yang di-drag untuk animasi visual feedback
         const itemEl = document.getElementById(`item-${itemId}`);
         if (itemEl) {
           itemEl.classList.add('updating');
@@ -130,22 +160,25 @@ export function ContentBoard() {
         try {
           await updateContentItem(itemId, { status: targetStatus });
           setDragError(null);
-          // Jika berhasil, tambahkan efek sukses
+          
           if (itemEl) {
             itemEl.classList.remove('updating');
             itemEl.classList.add('update-success');
+            
+            // Flash animation for successful move
             setTimeout(() => {
               itemEl?.classList.remove('update-success');
             }, 1000);
           }
           
-          // Tambahkan informasi untuk debugging
-          console.log(`Successfully moved item ${itemId} to ${targetStatus}`);
+          // Show success toast with history info
+          toast.success(t("statusUpdated"), {
+            description: `${t("movedFrom")} ${t(sourceStatus.toLowerCase().replace(/\s+/g, ""))} ${t("to")} ${t(targetStatus.toLowerCase().replace(/\s+/g, ""))}`
+          });
         } catch (err) {
           console.error("Error updating item status:", err);
           setDragError(err instanceof Error ? err.message : "Gagal memperbarui status");
           
-          // Jika gagal, tambahkan efek kesalahan
           if (itemEl) {
             itemEl.classList.remove('updating');
             itemEl.classList.add('update-error');
@@ -154,9 +187,11 @@ export function ContentBoard() {
             }, 1000);
           }
           
-          // Tampilkan pesan toast untuk kesalahan
           toast.error(t("errorUpdatingStatus"));
         }
+      } else if (sourceStatus === targetStatus) {
+        // Same column drop - no action needed
+        console.log("Dropped in the same column");
       }
     } catch (error) {
       console.error("Error in drag and drop:", error);
@@ -170,6 +205,24 @@ export function ContentBoard() {
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = "move";
+    
+    // Get the column status from the data attribute
+    const column = e.currentTarget;
+    const status = column.getAttribute('data-status') as ContentStatus | null;
+    
+    if (status && draggingOverStatus !== status) {
+      setDraggingOverStatus(status);
+    }
+  };
+  
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    const relatedTarget = e.relatedTarget as HTMLElement | null;
+    const currentColumn = e.currentTarget;
+    
+    // Check if we're leaving the column and not entering a child element
+    if (!relatedTarget || !currentColumn.contains(relatedTarget)) {
+      setDraggingOverStatus(null);
+    }
   };
   
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, item: ContentItem) => {
@@ -183,10 +236,13 @@ export function ContentBoard() {
     
     e.dataTransfer.effectAllowed = "move";
     
-    // Buat elemen ghost untuk drag
+    // Create a custom ghost image
     const dragImg = document.createElement("div");
-    dragImg.classList.add("drag-ghost");
-    dragImg.textContent = item.title;
+    dragImg.classList.add("drag-ghost", "bg-background", "p-2", "rounded", "shadow-lg", "border");
+    dragImg.innerHTML = `
+      <div class="text-sm font-medium">${item.title}</div>
+      <div class="text-xs text-muted-foreground">${item.platform}</div>
+    `;
     document.body.appendChild(dragImg);
     e.dataTransfer.setDragImage(dragImg, 20, 20);
     
@@ -203,11 +259,11 @@ export function ContentBoard() {
         </div>
       )}
       
-      <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide h-[calc(100vh-12rem)]">
+      <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide h-[calc(100vh-12rem)] font-sans">
         {statuses.map((status, index) => (
           <div 
             key={status}
-            className={`min-w-[320px] transition-all ${isDragging ? 'drop-target' : ''}`}
+            className={`min-w-[320px] transition-all bg-background p-2 rounded-lg border ${isDragging ? 'drop-target' : ''}`}
           >
             <ContentBoardColumn
               status={status}
@@ -218,6 +274,7 @@ export function ContentBoard() {
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               onDragStart={handleDragStart}
+              isDraggingOver={draggingOverStatus === status}
             />
           </div>
         ))}
@@ -234,7 +291,7 @@ export function ContentBoard() {
         <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
           <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto glassmorphism">
             <DialogHeader>
-              <DialogTitle>{t("addIdea")}</DialogTitle>
+              <DialogTitle className="font-display">{t("addIdea")}</DialogTitle>
             </DialogHeader>
             <ContentForm 
               onClose={() => setIsAddingContent(false)} 

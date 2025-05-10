@@ -1,5 +1,6 @@
+
 import * as React from "react";
-import { MoreHorizontal, Edit, Trash2, MoveRight } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, MoveRight, History } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,6 +8,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { ContentStatus } from "@/types/content";
 import { useLanguage } from "@/context/LanguageContext";
@@ -29,6 +35,15 @@ export function ContentActionMenu({
 }: ContentActionMenuProps) {
   const { t } = useLanguage();
   
+  const allStatuses: ContentStatus[] = [
+    "Idea", 
+    "Script", 
+    "Recorded", 
+    "Edited", 
+    "Ready to Publish", 
+    "Published"
+  ];
+  
   const nextStatus: Record<ContentStatus, ContentStatus | null> = {
     "Idea": "Script",
     "Script": "Recorded",
@@ -38,20 +53,29 @@ export function ContentActionMenu({
     "Published": null
   };
   
+  const statusColors: Record<ContentStatus, string> = {
+    "Idea": "text-status-idea",
+    "Script": "text-status-script",
+    "Recorded": "text-status-recorded",
+    "Edited": "text-status-edited",
+    "Ready to Publish": "text-status-ready",
+    "Published": "text-status-published"
+  };
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
-          className={`action-dots ${className}`}
+          className={`action-dots p-1 h-8 w-8 rounded-full hover:bg-muted ${className}`}
           onClick={e => e.stopPropagation()}
         >
           <MoreHorizontal className="h-4 w-4" />
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 glassmorphism">
-        <DropdownMenuLabel>{t("actions")}</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-56 glassmorphism">
+        <DropdownMenuLabel className="font-display">{t("actions")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         
         <DropdownMenuItem onClick={(e) => { 
@@ -62,16 +86,56 @@ export function ContentActionMenu({
           {t("edit")}
         </DropdownMenuItem>
         
-        {currentStatus && onMove && nextStatus[currentStatus] && (
-          <DropdownMenuItem onClick={(e) => { 
-            e.stopPropagation();
-            const nextStat = nextStatus[currentStatus]!;
-            console.log(`Action Menu: Moving from ${currentStatus} to ${nextStat}`);
-            onMove(nextStat);
-          }}>
-            <MoveRight className="mr-2 h-4 w-4" />
-            {t("moveTo")} {t(nextStatus[currentStatus]!.toLowerCase().replace(/\s+/g, ""))}
-          </DropdownMenuItem>
+        {currentStatus && onMove && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+              {t("moveToStatus")}
+            </DropdownMenuLabel>
+            
+            {/* Direct next status option */}
+            {nextStatus[currentStatus] && (
+              <DropdownMenuItem 
+                className="font-medium"
+                onClick={(e) => { 
+                  e.stopPropagation();
+                  const nextStat = nextStatus[currentStatus]!;
+                  console.log(`Action Menu: Moving from ${currentStatus} to ${nextStat}`);
+                  onMove(nextStat);
+                }}
+              >
+                <MoveRight className={`mr-2 h-4 w-4 ${statusColors[nextStatus[currentStatus]!]}`} />
+                {t(nextStatus[currentStatus]!.toLowerCase().replace(/\s+/g, ""))}
+              </DropdownMenuItem>
+            )}
+            
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="pl-2">
+                <History className="mr-2 h-4 w-4" />
+                {t("allStatuses")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent className="w-48 glassmorphism">
+                  {allStatuses
+                    .filter(status => status !== currentStatus)
+                    .map(status => (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMove(status);
+                        }}
+                        className={`${status === nextStatus[currentStatus] ? 'font-medium' : ''}`}
+                      >
+                        <div className={`w-2 h-2 rounded-full mr-2 ${statusColors[status].replace('text-', 'bg-')}`}></div>
+                        {t(status.toLowerCase().replace(/\s+/g, ""))}
+                      </DropdownMenuItem>
+                    ))
+                  }
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+          </>
         )}
         
         <DropdownMenuSeparator />
