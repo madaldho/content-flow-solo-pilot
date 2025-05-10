@@ -1,87 +1,88 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+:root {
+  --font-sans: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  
+  /* Theme colors */
+  --background: 0 0% 100%;
+  --foreground: 222.2 47.4% 11.2%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+  /* Status colors */
+  --status-idea: 221 83% 53%;
+  --status-script: 250 73% 63%;
+  --status-recorded: 142 71% 45%;
+  --status-edited: 31 91% 65%;
+  --status-ready: 202 76% 54%;
+  --status-published: 143 64% 47%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+  --card-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  --card-gradient-1: linear-gradient(to bottom right, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.08));
+  --card-gradient-2: linear-gradient(to bottom right, rgba(99, 102, 241, 0.08), rgba(236, 72, 153, 0.08));
+  --card-gradient-3: linear-gradient(to bottom right, rgba(139, 92, 246, 0.08), rgba(248, 113, 113, 0.08));
+  --card-gradient-4: linear-gradient(to bottom right, rgba(239, 68, 68, 0.08), rgba(249, 115, 22, 0.08));
+  --card-gradient-5: linear-gradient(to bottom right, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08));
+  --card-gradient-6: linear-gradient(to bottom right, rgba(249, 115, 22, 0.08), rgba(139, 92, 246, 0.08));
 
-    --primary: 270 95% 65%;
-    --primary-foreground: 0 0% 100%;
+  /* Component colors */
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 47.4% 11.2%;
+  
+  --radius: 0.5rem;
+}
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+.dark {
+  /* Theme colors */
+  --background: 224 71% 4%;
+  --foreground: 213 31% 91%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+  /* Status colors in dark mode */
+  --status-idea: 221 83% 53%;
+  --status-script: 250 73% 63%;
+  --status-recorded: 142 71% 45%;
+  --status-edited: 31 91% 65%;
+  --status-ready: 202 76% 54%;
+  --status-published: 143 64% 47%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 215 32% 92%;
-    --input: 215 32% 92%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 1rem;
-
-    --sidebar-background: 224 71.4% 4.1%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-muted: 215 20.2% 65.1%;
-    --sidebar-muted-foreground: 215 20.2% 65.1%;
-    --sidebar-accent: 220 14.3% 95.9%;
-    --sidebar-accent-foreground: 220.9 39.3% 11%;
-    --sidebar-border: 215 28% 17%;
-    --sidebar-ring: 215 20.2% 65.1%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 270 95% 65%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-
-    --sidebar-background: 224 71.4% 4.1%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-muted: 215 20.2% 65.1%;
-    --sidebar-muted-foreground: 215 20.2% 65.1%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 28% 17%;
-    --sidebar-ring: 215 20.2% 65.1%;
-  }
+  /* Component colors */
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
 }
 
 @layer base {
@@ -89,124 +90,154 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-sans);
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
+
+  /* Status indicator colors */
+  .border-status-idea {
+    @apply border-l-4 border-blue-500;
+  }
+  .border-status-script {
+    @apply border-l-4 border-violet-400;
+  }
+  .border-status-recorded {
+    @apply border-l-4 border-green-500;
+  }
+  .border-status-edited {
+    @apply border-l-4 border-amber-400;
+  }
+  .border-status-ready {
+    @apply border-l-4 border-blue-400;
+  }
+  .border-status-published {
+    @apply border-l-4 border-green-600;
+  }
+  
+  .bg-status-idea {
+    @apply bg-blue-500;
+  }
+  .bg-status-script {
+    @apply bg-violet-400;
+  }
+  .bg-status-recorded {
+    @apply bg-green-500;
+  }
+  .bg-status-edited {
+    @apply bg-amber-400;
+  }
+  .bg-status-ready {
+    @apply bg-blue-400;
+  }
+  .bg-status-published {
+    @apply bg-green-600;
   }
 }
 
-@layer utilities {
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+/* Custom gradients */
+.card-gradient-1 {
+  background-image: var(--card-gradient-1);
+}
+.card-gradient-2 {
+  background-image: var(--card-gradient-2);
+}
+.card-gradient-3 {
+  background-image: var(--card-gradient-3);
+}
+.card-gradient-4 {
+  background-image: var(--card-gradient-4);
+}
+.card-gradient-5 {
+  background-image: var(--card-gradient-5);
+}
+.card-gradient-6 {
+  background-image: var(--card-gradient-6);
+}
+
+/* Status board */
+.mobile-dropdown.expanded {
+  max-height: 500px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease;
+}
+.mobile-dropdown.collapsed {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+/* Kanban board animations */
+@keyframes drag-over {
+  0%, 100% {
+    transform: scale(1);
   }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  50% {
+    transform: scale(1.02);
   }
 }
 
-/* Card styles */
-.card-hover {
-  @apply transition-all duration-200 hover:shadow-md hover:translate-y-[-2px];
+.animate-drag-over {
+  animation: drag-over 1s ease-in-out infinite;
 }
 
-/* Drag and drop visual feedback */
+.animate-drag-start {
+  opacity: 0.7;
+  transform: scale(0.95);
+}
+
 .updating {
-  @apply opacity-50 scale-95 transition-all;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
 }
+
 .update-success {
-  @apply ring-2 ring-green-500/70 transition-all;
+  border: 2px solid #10b981;
+  transition: border 0.3s ease;
 }
+
 .update-error {
-  @apply ring-2 ring-destructive/70 transition-all;
+  border: 2px solid #ef4444;
+  transition: border 0.3s ease;
 }
-.drop-target {
-  @apply border-2 border-dashed border-primary/40 bg-primary/5;
+
+/* Hide scrollbars on macOS */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-.drag-ghost {
-  @apply fixed top-0 left-0 -translate-x-full p-3 rounded-lg bg-background/90 shadow-lg border-2 border-primary/30 z-[100] pointer-events-none;
-  width: 200px;
-}
-.kanban-card {
-  transform-origin: 50% 50%;
-}
-.kanban-card:active {
-  @apply cursor-grabbing scale-[1.02] shadow-md;
-}
-.kanban-column {
-  @apply bg-background/50 backdrop-blur-sm border rounded-lg;
-  min-height: 300px;
-  display: flex;
-  flex-direction: column;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Glassmorphism effect */
 .glassmorphism {
-  @apply bg-background/80 backdrop-blur-md border shadow-md;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Status color classes - defined directly instead of using @apply */
-.status-idea {
-  background-color: hsl(var(--status-idea));
-}
-.status-script {
-  background-color: hsl(var(--status-script));
-}
-.status-recorded {
-  background-color: hsl(var(--status-recorded));
-}
-.status-edited {
-  background-color: hsl(var(--status-edited));
-}
-.status-ready {
-  background-color: hsl(var(--status-ready));
-}
-.status-published {
-  background-color: hsl(var(--status-published));
+.dark .glassmorphism {
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(55, 65, 81, 0.3);
 }
 
-/* Card gradient effects */
-.card-gradient-1 {
-  background: linear-gradient(225deg, #FFE29F 0%, #FFA99F 48%, #FF719A 100%);
-}
-.card-gradient-2 {
-  background: linear-gradient(90deg, hsla(221, 45%, 73%, 1) 0%, hsla(220, 78%, 29%, 1) 100%);
-}
-.card-gradient-3 {
-  background: linear-gradient(90deg, hsla(39, 100%, 77%, 1) 0%, hsla(22, 90%, 57%, 1) 100%);
-}
-.card-gradient-4 {
-  background: linear-gradient(90deg, hsla(46, 73%, 75%, 1) 0%, hsla(176, 73%, 88%, 1) 100%);
-}
-.card-gradient-5 {
-  background: linear-gradient(90deg, hsla(59, 86%, 68%, 1) 0%, hsla(134, 36%, 53%, 1) 100%);
-}
-.card-gradient-6 {
-  background: linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%);
-}
-
-/* Numbered list styling */
-.numbered-item {
-  counter-increment: item-counter;
-  @apply relative;
-}
-.numbered-item:before {
-  content: counter(item-counter);
-  @apply absolute -left-5 -top-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-primary rounded-full;
-}
+/* Numbered list */
 .numbered-list {
   counter-reset: item-counter;
-  @apply pl-6;
 }
 
-/* Mobile optimizations */
-.mobile-dropdown {
-  @apply w-full transition-all duration-300 overflow-hidden;
+.numbered-item {
+  counter-increment: item-counter;
 }
-.mobile-dropdown.collapsed {
-  @apply max-h-0;
+
+.font-display {
+  font-family: var(--font-sans);
 }
-.mobile-dropdown.expanded {
-  @apply max-h-[500px];
+
+.font-sans {
+  font-family: var(--font-sans);
 }

@@ -1,3 +1,4 @@
+
 export type Platform = 
   | "YouTube" 
   | "TikTok" 
@@ -40,7 +41,7 @@ export interface ContentItem {
   id: string;
   title: string;
   platform: Platform;      // Keep for backward compatibility
-  platforms?: Platform[];  // Add new multi-platform support
+  platforms: Platform[];   // Add multi-platform support
   status: ContentStatus;
   tags: ContentTag[];
   createdAt: Date;

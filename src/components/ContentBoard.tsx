@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -76,7 +77,7 @@ function ContentBoardColumn({
       data-status={status}
     >
       <div 
-        className={`flex items-center justify-between p-3 ${statusColors[status]} mb-0 sticky top-0 bg-background/90 backdrop-blur-sm z-10 font-display rounded-t-lg cursor-pointer`}
+        className={`flex items-center justify-between p-3 ${statusColors[status]} mb-0 sticky top-0 bg-background/90 backdrop-blur-sm z-10 font-sans rounded-t-lg cursor-pointer`}
         onClick={isMobile ? toggleExpand : undefined}
       >
         <div className="flex items-center">
@@ -141,7 +142,7 @@ function ContentBoardColumn({
       {status === "Idea" && onAddItem && (
         <Button 
           variant="outline" 
-          className="w-full mb-2 rounded-xl hover:bg-primary/10 font-display" 
+          className="w-full mb-2 rounded-xl hover:bg-primary/10 font-sans" 
           onClick={() => {
             if (onAddItem) onAddItem();
           }}
@@ -284,7 +285,7 @@ export function ContentBoard() {
     dragImg.classList.add("drag-ghost", "bg-background", "p-2", "rounded", "shadow-lg", "border");
     dragImg.innerHTML = `
       <div class="text-sm font-medium">${item.title}</div>
-      <div class="text-xs text-muted-foreground">${item.platform}</div>
+      <div class="text-xs text-muted-foreground">${item.platforms ? item.platforms.join(', ') : item.platform}</div>
     `;
     document.body.appendChild(dragImg);
     e.dataTransfer.setDragImage(dragImg, 20, 20);
@@ -334,7 +335,7 @@ export function ContentBoard() {
         <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
           <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto glassmorphism">
             <DialogHeader>
-              <DialogTitle className="font-display">{t("addIdea")}</DialogTitle>
+              <DialogTitle className="font-sans">{t("addIdea")}</DialogTitle>
             </DialogHeader>
             <ContentForm 
               onClose={() => setIsAddingContent(false)} 

@@ -1,3 +1,4 @@
+
 import { ContentItem, ContentStatus, ContentTag, Platform, ContentStats, HistoryEntry } from "@/types/content";
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +32,10 @@ const initializeData = () => {
           item.history.forEach(entry => {
             entry.timestamp = new Date(entry.timestamp);
           });
+        }
+        // Ensure platforms is always an array
+        if (!item.platforms) {
+          item.platforms = item.platform ? [item.platform] : [];
         }
       });
     }
@@ -68,6 +73,8 @@ export const addContentItem = async (item: Omit<ContentItem, "id" | "createdAt" 
   const newItem: ContentItem = {
     id: newId,
     ...item,
+    platform: item.platforms && item.platforms.length > 0 ? item.platforms[0] : item.platform, // Backward compatibility
+    platforms: item.platforms || (item.platform ? [item.platform] : []),
     createdAt: now,
     updatedAt: now,
     contentChecklist: {
@@ -140,11 +147,14 @@ export const updateContentItem = async (id: string, updates: Partial<ContentItem
       let history: HistoryEntry[] = [];
       if (existingItem.history) {
         try {
-          history = JSON.parse(existingItem.history);
+          const parsedHistory = JSON.parse(existingItem.history);
           // Ensure the parsed history entries have Date objects for timestamps
-          history.forEach(entry => {
-            entry.timestamp = new Date(entry.timestamp);
-          });
+          history = Array.isArray(parsedHistory) ? parsedHistory.map((entry: any) => ({
+            timestamp: new Date(entry.timestamp),
+            previousStatus: entry.previousStatus,
+            newStatus: entry.newStatus,
+            changedBy: entry.changedBy
+          })) : [];
         } catch (parseError) {
           console.error('Error parsing history from JSON:', parseError);
           history = []; // Initialize to an empty array to avoid further errors
@@ -160,11 +170,18 @@ export const updateContentItem = async (id: string, updates: Partial<ContentItem
         });
       }
       
+      // Update platforms in database format
+      if (updates.platforms) {
+        updates.platform = updates.platforms.length > 0 ? updates.platforms[0] : '';
+      } else if (updates.platform && !updates.platforms) {
+        updates.platforms = [updates.platform];
+      }
+      
       // Convert updates to database format
       const dbUpdates = {
         ...updates,
         updated_at: now.toISOString(),
-        publication_date: updates.publicationDate ? updates.publicationDate.toISOString() : null,
+        publication_date: updates.publicationDate ? updates.publicationDate.toISOString() : undefined,
         history: JSON.stringify(history) // Convert history array to JSON string
       };
       
@@ -181,6 +198,13 @@ export const updateContentItem = async (id: string, updates: Partial<ContentItem
       // Fall back to local storage
       const index = contentItems.findIndex(item => item.id === id);
       if (index !== -1) {
+        // Update platforms in memory format
+        if (updates.platforms) {
+          updates.platform = updates.platforms.length > 0 ? updates.platforms[0] : '';
+        } else if (updates.platform && !updates.platforms) {
+          updates.platforms = [updates.platform];
+        }
+        
         const updatedItem: ContentItem = {
           ...contentItems[index],
           ...updates,
@@ -241,17 +265,53 @@ export const getContentItems = async (): Promise<ContentItem[]> => {
         throw error;
       }
       
-      // Parse the history from JSON if it exists
-      const parsedData = data.map(item => ({
-        ...item,
-        createdAt: new Date(item.created_at),
-        updatedAt: new Date(item.updated_at),
-        publicationDate: item.publication_date ? new Date(item.publication_date) : null,
-        history: item.history ? JSON.parse(item.history).map((entry: any) => ({
-          ...entry,
-          timestamp: new Date(entry.timestamp)
-        })) : []
-      })) as ContentItem[];
+      // Parse and transform database data to ContentItem format
+      const parsedData = data.map(item => {
+        let parsedHistory: HistoryEntry[] = [];
+        
+        if (item.history) {
+          try {
+            const jsonHistory = JSON.parse(item.history);
+            parsedHistory = Array.isArray(jsonHistory) ? jsonHistory.map((entry: any) => ({
+              timestamp: new Date(entry.timestamp),
+              previousStatus: entry.previousStatus,
+              newStatus: entry.newStatus,
+              changedBy: entry.changedBy
+            })) : [];
+          } catch (e) {
+            console.error('Error parsing history:', e);
+            parsedHistory = [];
+          }
+        }
+        
+        return {
+          id: item.id,
+          title: item.title,
+          platform: item.platform || '',
+          platforms: Array.isArray(item.platforms) ? item.platforms : 
+                     item.platform ? [item.platform] : [],
+          status: item.status || 'Idea',
+          tags: Array.isArray(item.tags) ? item.tags : [],
+          createdAt: new Date(item.created_at),
+          updatedAt: new Date(item.updated_at),
+          publicationDate: item.publication_date ? new Date(item.publication_date) : undefined,
+          notes: item.notes,
+          referenceLink: item.reference_link,
+          script: item.script,
+          scriptFile: item.script_file,
+          contentChecklist: item.content_checklist || {
+            intro: false,
+            mainPoints: false,
+            callToAction: false,
+            outro: false
+          },
+          productionNotes: item.production_notes,
+          equipmentUsed: item.equipment_used || [],
+          contentFiles: item.content_files || [],
+          metrics: item.metrics,
+          history: parsedHistory
+        } as ContentItem;
+      });
       
       return parsedData;
     } else {
