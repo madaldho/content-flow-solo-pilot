@@ -93,7 +93,6 @@ export const addContentItem = async (item: Omit<ContentItem, "id" | "createdAt" 
         updated_at: newItem.updatedAt.toISOString(),
         publication_date: newItem.publicationDate ? newItem.publicationDate.toISOString() : null,
         history: JSON.stringify(newItem.history), // Convert history array to JSON string
-        // Menangani platforms yang baru saja ditambahkan
         platforms: newItem.platforms
       };
       
@@ -143,7 +142,12 @@ export const updateContentItem = async (id: string, updates: Partial<ContentItem
       let history: HistoryEntry[] = [];
       if (existingItem.history) {
         try {
-          history = JSON.parse(existingItem.history);
+          if (typeof existingItem.history === 'string') {
+            history = JSON.parse(existingItem.history);
+          } else if (Array.isArray(existingItem.history)) {
+            history = existingItem.history;
+          }
+          
           // Ensure the parsed history entries have Date objects for timestamps
           history.forEach(entry => {
             entry.timestamp = new Date(entry.timestamp);
@@ -158,7 +162,7 @@ export const updateContentItem = async (id: string, updates: Partial<ContentItem
       if (updates.status && updates.status !== existingItem.status) {
         history.push({
           timestamp: now,
-          previousStatus: existingItem.status,
+          previousStatus: existingItem.status as ContentStatus,
           newStatus: updates.status
         });
       }
@@ -246,12 +250,12 @@ export const getContentItems = async (): Promise<ContentItem[]> => {
       
       // Parse the history from JSON if it exists
       const parsedData = data.map(item => {
-        let parsedHistory = [];
+        let parsedHistory: HistoryEntry[] = [];
         if (item.history) {
           try {
             if (typeof item.history === 'string') {
               parsedHistory = JSON.parse(item.history);
-            } else {
+            } else if (Array.isArray(item.history)) {
               parsedHistory = item.history;
             }
             // Ensure dates are properly parsed
@@ -269,7 +273,7 @@ export const getContentItems = async (): Promise<ContentItem[]> => {
           id: item.id,
           title: item.title,
           platform: item.platform,
-          platforms: item.platforms || [item.platform], // Tambahkan support multi-platform
+          platforms: item.platforms || [item.platform], // Add multi-platform support
           status: item.status as ContentStatus,
           tags: item.tags || [],
           createdAt: new Date(item.created_at),
@@ -286,8 +290,8 @@ export const getContentItems = async (): Promise<ContentItem[]> => {
             outro: false
           },
           productionNotes: item.production_notes,
-          equipmentUsed: item.equipment_used,
-          contentFiles: item.content_files,
+          equipmentUsed: item.equipment_used || [],
+          contentFiles: item.content_files || [],
           metrics: item.metrics,
           history: parsedHistory
         } as ContentItem;

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,7 @@ import { ContentItem, ContentStatus } from "@/types/content";
 import { useContent } from "@/context/ContentContext";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
-import ContentForm from './ContentForm';
+import { ContentForm } from './ContentForm';
 import { useLanguage } from "@/context/LanguageContext";
 
 const columnTitles: { [key in ContentStatus]: string } = {
@@ -18,7 +19,7 @@ const columnTitles: { [key in ContentStatus]: string } = {
   "Published": "publishedColumnTitle",
 };
 
-const ContentBoard = () => {
+export function ContentBoard() {
   const { contentItems, updateContentItem, getContentByStatus } = useContent();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
@@ -127,6 +128,4 @@ const ContentBoard = () => {
       )}
     </div>
   );
-};
-
-export default ContentBoard;
+}

@@ -97,7 +97,7 @@ export function MetricsImporter({ onMetricsImported, platform }: MetricsImporter
           size="sm"
           variant="outline"
         >
-          {loading ? <LoadingSpinner size="xs" /> : t("import")}
+          {loading ? <LoadingSpinner /> : t("import")}
         </Button>
       </div>
       <p className="text-xs text-muted-foreground italic">
