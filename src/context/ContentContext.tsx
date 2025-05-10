@@ -1,7 +1,8 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { ContentItem, ContentStats, ContentStatus, ContentTag, HistoryEntry, Platform } from "@/types/content";
 import { toast } from "sonner";
-import { fetchAllContentItems, addContentItem as addContentItemToDb, updateContentItem as updateContentItemInDb, deleteContentItem as deleteContentItemFromDb } from "@/services/contentService";
+import { getContentItems as fetchAllContentItems, addContentItem as addContentItemToDb, updateContentItem as updateContentItemInDb, deleteContentItem as deleteContentItemFromDb } from "@/services/contentService";
 import { supabase } from "@/integrations/supabase/client";
 import { useCustomOptions } from './CustomOptionsContext';
 

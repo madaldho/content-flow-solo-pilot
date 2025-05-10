@@ -1,3 +1,4 @@
+
 import { ContentItem, ContentStatus, ContentTag, Platform, ContentStats, HistoryEntry } from "@/types/content";
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
@@ -91,7 +92,9 @@ export const addContentItem = async (item: Omit<ContentItem, "id" | "createdAt" 
         created_at: newItem.createdAt.toISOString(),
         updated_at: newItem.updatedAt.toISOString(),
         publication_date: newItem.publicationDate ? newItem.publicationDate.toISOString() : null,
-        history: JSON.stringify(newItem.history) // Convert history array to JSON string
+        history: JSON.stringify(newItem.history), // Convert history array to JSON string
+        // Menangani platforms yang baru saja ditambahkan
+        platforms: newItem.platforms
       };
       
       const { data, error } = await supabase
@@ -242,16 +245,53 @@ export const getContentItems = async (): Promise<ContentItem[]> => {
       }
       
       // Parse the history from JSON if it exists
-      const parsedData = data.map(item => ({
-        ...item,
-        createdAt: new Date(item.created_at),
-        updatedAt: new Date(item.updated_at),
-        publicationDate: item.publication_date ? new Date(item.publication_date) : null,
-        history: item.history ? JSON.parse(item.history).map((entry: any) => ({
-          ...entry,
-          timestamp: new Date(entry.timestamp)
-        })) : []
-      })) as ContentItem[];
+      const parsedData = data.map(item => {
+        let parsedHistory = [];
+        if (item.history) {
+          try {
+            if (typeof item.history === 'string') {
+              parsedHistory = JSON.parse(item.history);
+            } else {
+              parsedHistory = item.history;
+            }
+            // Ensure dates are properly parsed
+            parsedHistory = parsedHistory.map((entry: any) => ({
+              ...entry,
+              timestamp: new Date(entry.timestamp)
+            }));
+          } catch (error) {
+            console.error('Error parsing history', error);
+            parsedHistory = [];
+          }
+        }
+        
+        return {
+          id: item.id,
+          title: item.title,
+          platform: item.platform,
+          platforms: item.platforms || [item.platform], // Tambahkan support multi-platform
+          status: item.status as ContentStatus,
+          tags: item.tags || [],
+          createdAt: new Date(item.created_at),
+          updatedAt: new Date(item.updated_at),
+          publicationDate: item.publication_date ? new Date(item.publication_date) : undefined,
+          notes: item.notes,
+          referenceLink: item.reference_link,
+          script: item.script,
+          scriptFile: item.script_file,
+          contentChecklist: item.content_checklist || {
+            intro: false,
+            mainPoints: false,
+            callToAction: false,
+            outro: false
+          },
+          productionNotes: item.production_notes,
+          equipmentUsed: item.equipment_used,
+          contentFiles: item.content_files,
+          metrics: item.metrics,
+          history: parsedHistory
+        } as ContentItem;
+      });
       
       return parsedData;
     } else {
