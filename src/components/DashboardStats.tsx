@@ -1,3 +1,4 @@
+
 import { useContent } from "@/context/ContentContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -145,7 +146,7 @@ export function DashboardStats() {
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>{t("unfinishedContent")}</AlertTitle>
                 <AlertDescription>
-                  {t("unfinishedContentMessage", { count: stats.unfinishedCount })}
+                  {t("unfinishedContentMessage")}
                 </AlertDescription>
               </Alert>
             )}
@@ -155,7 +156,7 @@ export function DashboardStats() {
                 <CalendarIcon className="h-4 w-4" />
                 <AlertTitle>{t("readyToPublish")}</AlertTitle>
                 <AlertDescription>
-                  {t("readyToPublishMessage", { count: stats.statusBreakdown["Ready to Publish"] || 0 })}
+                  {t("readyToPublishMessage")}
                 </AlertDescription>
               </Alert>
             )}

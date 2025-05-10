@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { ContentItem, ContentStats, ContentStatus, ContentTag, HistoryEntry, Platform } from "@/types/content";
 import { toast } from "sonner";
-import { fetchAllContentItems, addContentItem as addContentItemToDb, updateContentItem as updateContentItemInDb, deleteContentItem as deleteContentItemFromDb } from "@/services/contentService";
+import { getContentItems, addContentItem as addContentItemToDb, updateContentItem as updateContentItemInDb, deleteContentItem as deleteContentItemFromDb } from "@/services/contentService";
 import { supabase } from "@/integrations/supabase/client";
 import { useCustomOptions } from './CustomOptionsContext';
 
@@ -55,7 +55,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const loadContentItems = async () => {
       try {
         setIsLoading(true);
-        const items = await fetchAllContentItems();
+        const items = await getContentItems();
         setContentItems(items);
         // Save to localStorage as backup
         localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
@@ -151,7 +151,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const id = await addContentItemToDb(newItem);
       
       // Update local state with the complete item from server
-      const updatedItems = await fetchAllContentItems();
+      const updatedItems = await getContentItems();
       setContentItems(updatedItems);
       
       toast.success("Content idea added successfully");
@@ -201,7 +201,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         await updateContentItemInDb(id, updates);
         
         // Update local state with the complete item from server
-        const refreshedItems = await fetchAllContentItems();
+        const refreshedItems = await getContentItems();
         setContentItems(refreshedItems);
         
         toast.success("Content updated");
