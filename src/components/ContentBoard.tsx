@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -142,7 +143,8 @@ function ContentBoardColumn({
         <Button 
           variant="outline" 
           className="w-full mb-2 rounded-xl hover:bg-primary/10 font-display" 
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             if (onAddItem) onAddItem();
           }}
         >
