@@ -31,7 +31,7 @@ import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 
-const platforms: Platform[] = ["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"];
+const defaultPlatforms: Platform[] = ["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"];
 const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
 
 const formSchema = z.object({
@@ -67,22 +67,33 @@ interface ContentFormProps {
 }
 
 export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps) {
-  const { addContentItem, updateContentItem } = useContent();
+  const { addContentItem, updateContentItem, platforms } = useContent();
   const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<ContentTag[]>(
     initialData?.tags || []
   );
   const [tagsOpen, setTagsOpen] = useState(false);
   const [platformsOpen, setPlatformsOpen] = useState(false);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(
-    initialData?.platforms ? initialData.platforms : initialData?.platform ? [initialData.platform] : []
-  );
+  
+  // Make sure we have a valid array of platforms to work with
+  const availablePlatforms = Array.isArray(platforms) && platforms.length > 0 
+    ? platforms 
+    : defaultPlatforms;
+    
+  // Ensure initial platforms is always an array
+  const initialPlatforms = initialData?.platforms 
+    ? initialData.platforms 
+    : initialData?.platform 
+      ? [initialData.platform] 
+      : [];
+      
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(initialPlatforms);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: initialData?.title || "",
-      platforms: initialData?.platforms || (initialData?.platform ? [initialData.platform] : []),
+      platforms: initialPlatforms,
       status: initialData?.status || "Idea",
       publicationDate: initialData?.publicationDate,
       notes: initialData?.notes || "",
@@ -216,10 +227,10 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                           aria-expanded={platformsOpen}
                           className={cn(
                             "w-full justify-between rounded-lg",
-                            !field.value.length && "text-muted-foreground"
+                            !field.value?.length && "text-muted-foreground"
                           )}
                         >
-                          {field.value.length > 0
+                          {field.value?.length > 0
                             ? `${field.value.length} ${t(field.value.length > 1 ? "platforms" : "platform")} ${t("selected")}`
                             : t("selectPlatforms")}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -231,7 +242,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                         <CommandInput placeholder={t("searchPlatforms")} />
                         <CommandEmpty>{t("noPlatformFound")}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
-                          {platforms.map((platform) => (
+                          {availablePlatforms.map((platform) => (
                             <CommandItem
                               key={platform}
                               value={platform}
@@ -318,13 +329,13 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-lg" align="start">
+                    <PopoverContent className="w-auto p-0 rounded-lg pointer-events-auto" align="start">
                       <Calendar
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
                         initialFocus
-                        className="rounded-lg"
+                        className={cn("rounded-lg pointer-events-auto")}
                       />
                     </PopoverContent>
                   </Popover>
