@@ -104,6 +104,13 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  
+  /* Responsive utilities */
+  .responsive-container {
+    @apply w-full px-4 sm:px-6 md:px-8;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
 }
 
 /* Card styles */
@@ -184,6 +191,34 @@
 }
 .card-gradient-6 {
   background: linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%);
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slide {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-drag-over {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 /* Numbered list styling */

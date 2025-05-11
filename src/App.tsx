@@ -7,11 +7,12 @@ import NotFound from "./pages/NotFound";
 import { CombinedContextWrapper } from "./context/CombinedContextWrapper";
 import SettingsPage from "./pages/SettingsPage";
 import ContentFormPage from "./pages/ContentFormPage";
+import { Toaster } from "./components/ui/sonner";
 
 function App() {
   return (
     <CombinedContextWrapper>
-      <div className="font-poppins min-h-screen bg-background"> {/* Ensure consistent font usage */}
+      <div className="font-poppins min-h-screen bg-background">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/content-board" element={<ContentBoardPage />} />
@@ -21,6 +22,7 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Toaster position="top-right" closeButton />
       </div>
     </CombinedContextWrapper>
   );

@@ -1,8 +1,9 @@
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Search, Menu, X, Settings } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import { useLanguage } from "@/context/LanguageContext";
@@ -17,16 +18,16 @@ export function Header({ onSearch }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleSearch = () => {
     if (onSearch) {
       onSearch(searchQuery);
+      setIsSearchOpen(false);
     } else {
-      // Jika tidak ada fungsi onSearch yang diberikan, kita bisa menampilkan
-      // notifikasi atau animasi di sini untuk memberi tahu pengguna bahwa
-      // fitur pencarian tidak tersedia di halaman ini
+      // If no search function is provided, show a notification
       setShowSearchResults(true);
-      setTimeout(() => setShowSearchResults(false), 3000); // Hilangkan setelah 3 detik
+      setTimeout(() => setShowSearchResults(false), 3000);
     }
   };
 
@@ -36,9 +37,14 @@ export function Header({ onSearch }: HeaderProps) {
     }
   };
 
+  // Close menu when route changes
+  useEffect(() => {
+    return () => setIsMenuOpen(false);
+  }, [navigate]);
+
   return (
-    <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="container flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="container flex h-14 md:h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
@@ -58,61 +64,63 @@ export function Header({ onSearch }: HeaderProps) {
           </h1>
         </div>
 
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-2 md:gap-6">
           <Button 
             variant="ghost" 
             onClick={() => navigate("/")}
+            className="rounded-xl"
           >
             {t("dashboard")}
           </Button>
           <Button 
             variant="ghost" 
             onClick={() => navigate("/content-board")}
+            className="rounded-xl"
           >
             {t("contentBoard")}
           </Button>
           <Button 
             variant="ghost" 
             onClick={() => navigate("/calendar")}
+            className="rounded-xl"
           >
             {t("calendar")}
           </Button>
           <Button 
             variant="ghost" 
             onClick={() => navigate("/settings")}
+            className="rounded-xl"
           >
             {t("settings")}
           </Button>
         </div>
         
-        <div className="hidden md:flex items-center gap-4">
-          {/* Selalu tampilkan search box untuk konsistensi */}
-          <div className="flex w-full max-w-sm items-center space-x-2">
+        <div className="hidden md:flex items-center gap-2 md:gap-4">
+          {/* Search box for desktop */}
+          <div className="relative flex w-full max-w-sm items-center space-x-2">
             <Input
               type="search"
               placeholder={t("search")}
-              className="w-[150px] lg:w-[250px]"
+              className="w-[150px] lg:w-[250px] pl-9 rounded-xl"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyPress}
             />
-            <Button 
-              size="icon" 
-              onClick={handleSearch}
-              aria-label={t("searchButton")}
-            >
-              <Search className="h-4 w-4" />
-            </Button>
+            <Search 
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" 
+              aria-hidden="true"
+            />
           </div>
           <LanguageSelector language={language} setLanguage={setLanguage} variant="icon" />
           <ThemeToggle />
         </div>
         
         <div className="md:hidden flex items-center gap-2">
-          {/* Selalu tampilkan search button untuk konsistensi */}
+          {/* Mobile search button */}
           <Button 
             size="icon" 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            variant="ghost"
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
             aria-label={t("searchButton")}
           >
             <Search className="h-4 w-4" />
@@ -122,18 +130,18 @@ export function Header({ onSearch }: HeaderProps) {
         </div>
       </div>
       
-      {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="md:hidden px-4 pb-4 animate-fade-in">
-          {/* Selalu tampilkan search box untuk konsistensi */}
-          <div className="flex w-full items-center space-x-2 mb-4">
+      {/* Mobile search input */}
+      {isSearchOpen && (
+        <div className="md:hidden px-4 py-2 border-t border-border/50 animate-slideDown">
+          <div className="flex w-full items-center space-x-2">
             <Input
               type="search"
               placeholder={t("search")}
-              className="w-full"
+              className="w-full rounded-xl"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyPress}
+              autoFocus
             />
             <Button 
               size="icon" 
@@ -143,7 +151,13 @@ export function Header({ onSearch }: HeaderProps) {
               <Search className="h-4 w-4" />
             </Button>
           </div>
-          <div className="flex flex-col gap-2">
+        </div>
+      )}
+      
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="md:hidden px-4 pb-4 animate-fade border-t border-border/50">
+          <div className="flex flex-col gap-2 py-2">
             <Button 
               variant="ghost" 
               className="w-full justify-start"
@@ -188,9 +202,9 @@ export function Header({ onSearch }: HeaderProps) {
         </div>
       )}
       
-      {/* Notifikasi search tidak aktif */}
+      {/* Search not available notification */}
       {showSearchResults && !onSearch && (
-        <div className="absolute top-16 left-0 right-0 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 p-2 text-center text-sm animate-fade-in">
+        <div className="absolute top-16 left-0 right-0 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 p-2 text-center text-sm animate-fade">
           {t("searchNotAvailable")}
         </div>
       )}

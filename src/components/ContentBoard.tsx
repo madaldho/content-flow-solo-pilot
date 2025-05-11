@@ -62,18 +62,24 @@ function ContentBoardColumn({
 
   // Reset expansion state when switching between mobile and desktop
   useEffect(() => {
-    setIsExpanded(false);
-  }, [isMobile]);
+    if (isMobile) {
+      // On mobile, only expand the first column by default
+      setIsExpanded(index === 0);
+    } else {
+      // On desktop, expand all columns
+      setIsExpanded(true);
+    }
+  }, [isMobile, index]);
 
   return (
     <div 
-      className={`kanban-column h-full rounded-lg transition-all duration-300 ${isDraggingOver ? 'ring-2 ring-primary/50 bg-primary/5 animate-drag-over' : ''}`}
+      className={`kanban-column rounded-lg transition-all duration-300 ${isDraggingOver ? 'ring-2 ring-primary/50 bg-primary/5 animate-drag-over' : ''}`}
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, status)}
       data-status={status}
     >
       <div 
-        className={`flex items-center justify-between p-3 ${statusColors[status]} mb-0 sticky top-0 bg-background/90 backdrop-blur-sm z-10 font-medium rounded-t-lg cursor-pointer`}
+        className={`flex items-center justify-between p-3 ${statusColors[status]} sticky top-0 bg-background/90 backdrop-blur-sm z-10 font-medium rounded-t-lg cursor-pointer`}
         onClick={toggleExpand}
       >
         <div className="flex items-center">
@@ -91,19 +97,18 @@ function ContentBoardColumn({
       </div>
       
       <div 
-        className={`space-y-3 mb-4 flex-1 p-2 mobile-dropdown ${isExpanded ? 'expanded' : 'collapsed'}`}
+        className={`space-y-2 flex-1 p-2 transition-all duration-300 ease-in-out overflow-hidden ${isMobile ? (isExpanded ? 'max-h-[800px]' : 'max-h-0') : ''}`}
       >
         {safeItems.length > 0 ? (
-          <div className="numbered-list">
+          <div className="space-y-2">
             {safeItems.map((item, itemIndex) => (
               <div
                 key={item.id}
                 id={`wrapper-${item.id}`}
-                className="kanban-card numbered-item transition-all duration-200 cursor-pointer mb-3"
+                className="kanban-card transition-all duration-200 cursor-pointer rounded-lg border border-border/40 hover:border-primary/30 hover:bg-primary/5"
                 onClick={() => onItemClick(item.id)}
                 draggable={true}
                 onDragStart={(e) => {
-                  console.log(`Starting drag for item ${item.id} with status ${item.status}`);
                   e.currentTarget.classList.add('animate-drag-start');
                   onDragStart(e, item);
                 }}
@@ -111,17 +116,36 @@ function ContentBoardColumn({
                   e.currentTarget.classList.remove('animate-drag-start');
                 }}
               >
-                <ContentStatusCard 
-                  key={item.id} 
-                  item={item} 
-                  onClick={() => onItemClick(item.id)}
-                  gradientClass={gradientClasses[itemIndex % 6]}
-                />
+                <div className="p-2">
+                  <div className="flex justify-between items-center">
+                    <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-primary rounded-full mr-2">
+                      {itemIndex + 1}
+                    </span>
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-muted/70">
+                      {item.platform}
+                    </span>
+                  </div>
+                  <h4 className="font-medium line-clamp-2 mt-1">{item.title}</h4>
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {item.tags.slice(0, 2).map((tag, i) => (
+                        <span key={i} className="text-xs px-1.5 py-0.5 bg-secondary/50 rounded-md">
+                          {tag}
+                        </span>
+                      ))}
+                      {item.tags.length > 2 && (
+                        <span className="text-xs px-1.5 py-0.5 bg-secondary/50 rounded-md">
+                          +{item.tags.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center p-6 text-sm text-muted-foreground rounded-lg border-2 border-dashed border-muted">
+          <div className="text-center p-4 text-sm text-muted-foreground rounded-lg border-2 border-dashed border-muted">
             {t("noContent")}
           </div>
         )}
@@ -284,11 +308,11 @@ export function ContentBoard() {
         </Button>
       </div>
       
-      <div className={`flex ${isMobile ? 'flex-col' : 'overflow-x-auto'} gap-4 pb-4 ${isMobile ? '' : 'scrollbar-hide'} h-[calc(100vh-12rem)]`}>
+      <div className={`${isMobile ? 'flex flex-col space-y-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4'} pb-4`}>
         {statuses.map((status, index) => (
           <div 
             key={status}
-            className={`${isMobile ? 'w-full mb-3' : 'min-w-[300px]'} transition-all bg-background/70 backdrop-blur-sm p-2 rounded-lg border ${isDragging ? 'drop-target' : ''}`}
+            className={`transition-all bg-background/70 backdrop-blur-sm rounded-lg border ${isDragging ? 'drop-target' : ''}`}
           >
             <ContentBoardColumn
               status={status}
