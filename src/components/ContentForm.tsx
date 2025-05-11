@@ -68,7 +68,8 @@ interface ContentFormProps {
 }
 
 export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps) {
-  const { addContentItem, updateContentItem, platforms } = useContent();
+  const { addContentItem, updateContentItem } = useContent();
+  const { platforms = [], tags = [] } = useContent();
   const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<ContentTag[]>(
     initialData?.tags || []
@@ -77,7 +78,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
   const [platformsOpen, setPlatformsOpen] = useState(false);
   
   // Make sure we have a valid array of platforms to work with
-  const availablePlatforms = Array.isArray(platforms) && platforms.length > 0 
+  const availablePlatforms: Platform[] = Array.isArray(platforms) && platforms.length > 0 
     ? platforms 
     : defaultPlatforms;
     
@@ -90,13 +91,13 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       ? [initialData.platform] 
       : [];
       
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(initialPlatforms);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(initialPlatforms || []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: initialData?.title || "",
-      platforms: initialPlatforms,
+      platforms: initialPlatforms || [],
       status: initialData?.status || "Idea",
       publicationDate: initialData?.publicationDate,
       notes: initialData?.notes || "",
@@ -137,10 +138,10 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
 
       const contentData: Omit<ContentItem, "id" | "createdAt" | "updatedAt"> = {
         title: values.title,
-        platform: values.platforms[0], // Keep backward compatibility with single platform
-        platforms: values.platforms,   // Add multi-platform support
+        platform: Array.isArray(values.platforms) && values.platforms.length > 0 ? values.platforms[0] : "",
+        platforms: Array.isArray(values.platforms) ? values.platforms : [],
         status: values.status as ContentStatus,
-        tags: selectedTags,
+        tags: Array.isArray(selectedTags) ? selectedTags : [],
         publicationDate: values.publicationDate,
         notes: values.notes,
         referenceLink: values.referenceLink,
@@ -184,12 +185,16 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
 
   // Function to handle platform selection
   const handlePlatformSelection = (platform: Platform) => {
-    let updatedPlatforms: Platform[];
+    let updatedPlatforms: Platform[] = [];
     
-    if (selectedPlatforms.includes(platform)) {
-      updatedPlatforms = selectedPlatforms.filter(p => p !== platform);
+    if (Array.isArray(selectedPlatforms)) {
+      if (selectedPlatforms.includes(platform)) {
+        updatedPlatforms = selectedPlatforms.filter(p => p !== platform);
+      } else {
+        updatedPlatforms = [...selectedPlatforms, platform];
+      }
     } else {
-      updatedPlatforms = [...selectedPlatforms, platform];
+      updatedPlatforms = [platform];
     }
     
     setSelectedPlatforms(updatedPlatforms);
@@ -250,7 +255,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                         <CommandInput placeholder={t("searchPlatforms")} />
                         <CommandEmpty>{t("noPlatformFound")}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
-                          {availablePlatforms && availablePlatforms.map((platform) => (
+                          {Array.isArray(availablePlatforms) && availablePlatforms.map((platform) => (
                             <CommandItem
                               key={platform}
                               value={platform}
@@ -259,7 +264,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  selectedPlatforms.includes(platform) ? "opacity-100" : "opacity-0"
+                                  Array.isArray(selectedPlatforms) && selectedPlatforms.includes(platform) ? "opacity-100" : "opacity-0"
                                 )}
                               />
                               {platform}
