@@ -78,6 +78,7 @@ export function ContentTagSelect({
 
   const handleAddCustomTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
+      e.preventDefault();
       const newTag = inputValue.trim() as ContentTag;
       
       if (!availableTags.includes(newTag)) {
@@ -89,7 +90,6 @@ export function ContentTagSelect({
       }
       
       setInputValue('');
-      e.preventDefault();
     }
   };
 
@@ -147,8 +147,8 @@ export function ContentTagSelect({
                 </Button>
               )}
             </div>
-            <CommandEmpty>{t("noTagFound")}</CommandEmpty>
             <CommandList>
+              <CommandEmpty>{t("noTagFound")}</CommandEmpty>
               <CommandGroup className="max-h-60 overflow-auto p-2">
                 {availableTags.map((tag) => (
                   <CommandItem

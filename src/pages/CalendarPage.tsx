@@ -8,11 +8,16 @@ import { PlusIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ContentForm } from "@/components/ContentForm";
 import { useLanguage } from "@/context/LanguageContext";
+import { useContent } from "@/context/ContentContext";
 
 export default function CalendarPage() {
   const [selectedContentId, setSelectedContentId] = useState<string | null>(null);
   const [isAddingContent, setIsAddingContent] = useState(false);
   const { t } = useLanguage();
+  const { contentItems } = useContent();
+  
+  // Ensure contentItems is loaded before rendering the calendar view
+  const isContentLoaded = Array.isArray(contentItems);
   
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-secondary/20">
@@ -29,30 +34,32 @@ export default function CalendarPage() {
         </div>
         
         <div className="glassmorphism p-4 rounded-xl shadow-sm">
-          <CalendarView onSelectContent={(id) => setSelectedContentId(id)} />
+          {isContentLoaded && (
+            <CalendarView onSelectContent={(id) => setSelectedContentId(id)} />
+          )}
         </div>
       </main>
       
       {/* Content Details Dialog */}
-      <ContentDetails
-        contentId={selectedContentId}
-        onClose={() => setSelectedContentId(null)}
-      />
+      {selectedContentId && (
+        <ContentDetails
+          contentId={selectedContentId}
+          onClose={() => setSelectedContentId(null)}
+        />
+      )}
       
       {/* Add Content Dialog */}
-      {isAddingContent && (
-        <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
-          <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto glassmorphism">
-            <DialogHeader>
-              <DialogTitle className="font-elegant text-2xl">{t("addContent")}</DialogTitle>
-              <DialogDescription>{t("addContentDescription")}</DialogDescription>
-            </DialogHeader>
-            <ContentForm 
-              onClose={() => setIsAddingContent(false)} 
-            />
-          </DialogContent>
-        </Dialog>
-      )}
+      <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
+        <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto glassmorphism">
+          <DialogHeader>
+            <DialogTitle className="font-elegant text-2xl">{t("addContent")}</DialogTitle>
+            <DialogDescription>{t("addContentDescription")}</DialogDescription>
+          </DialogHeader>
+          <ContentForm 
+            onClose={() => setIsAddingContent(false)} 
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

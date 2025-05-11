@@ -18,6 +18,7 @@ export function CalendarView({ onSelectContent }: CalendarViewProps) {
   // Function to find content that should be published on a specific date
   const getContentForDate = (date: Date): ContentItem[] => {
     if (!date) return [];
+    if (!Array.isArray(contentItems)) return [];
     
     return contentItems.filter((item) => {
       if (!item.publicationDate) return false;
@@ -36,11 +37,6 @@ export function CalendarView({ onSelectContent }: CalendarViewProps) {
   const dateHasContent = (date: Date): boolean => {
     return getContentForDate(date).length > 0;
   };
-
-  // Get days with content for styling in calendar
-  const daysWithContent = contentItems
-    .filter(item => item.publicationDate)
-    .map(item => item.publicationDate as Date);
 
   // Get content for the selected date
   const selectedDateContent = selectedDate ? getContentForDate(selectedDate) : [];
