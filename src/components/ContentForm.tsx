@@ -136,10 +136,14 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
         outro: initialData?.contentChecklist?.outro || false
       };
 
+      // Ensure we have valid platforms data
+      const platformsValue = Array.isArray(values.platforms) ? values.platforms : [];
+      const firstPlatform = platformsValue.length > 0 ? platformsValue[0] : "";
+
       const contentData: Omit<ContentItem, "id" | "createdAt" | "updatedAt"> = {
         title: values.title,
-        platform: Array.isArray(values.platforms) && values.platforms.length > 0 ? values.platforms[0] : "",
-        platforms: Array.isArray(values.platforms) ? values.platforms : [],
+        platform: firstPlatform,
+        platforms: platformsValue,
         status: values.status as ContentStatus,
         tags: Array.isArray(selectedTags) ? selectedTags : [],
         publicationDate: values.publicationDate,
@@ -240,7 +244,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                           aria-expanded={platformsOpen}
                           className={cn(
                             "w-full justify-between rounded-lg",
-                            !field.value?.length && "text-muted-foreground"
+                            !Array.isArray(field.value) || field.value.length === 0 ? "text-muted-foreground" : ""
                           )}
                         >
                           {Array.isArray(field.value) && field.value.length > 0
