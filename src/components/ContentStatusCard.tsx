@@ -98,7 +98,7 @@ export function ContentStatusCard({ item, onClick, gradientClass }: ContentStatu
   return (
     <Card 
       id={`item-${item.id}`}
-      className={`mb-0 hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing card-hover rounded-xl overflow-hidden ${gradientClass ? 'border-0' : ''}`}
+      className={`mb-0 hover:shadow-md transition-all duration-200 cursor-pointer relative card-hover rounded-xl overflow-hidden ${gradientClass ? 'border-0' : ''}`}
       onClick={onClick}
     >
       {gradientClass ? (
@@ -119,7 +119,7 @@ export function ContentStatusCard({ item, onClick, gradientClass }: ContentStatu
               onDelete={handleDeleteContent}
               onMove={handleMoveContent}
               currentStatus={item.status}
-              className="ml-2"
+              className="relative z-10"
             />
           </div>
         </div>

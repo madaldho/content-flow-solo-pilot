@@ -67,14 +67,14 @@ export function ContentActionMenu({
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
-          className={`action-dots p-1 h-8 w-8 rounded-full hover:bg-muted ${className}`}
+          className={`action-dots p-1 h-8 w-8 rounded-full hover:bg-muted ${className || ""}`}
           onClick={e => e.stopPropagation()}
         >
           <MoreHorizontal className="h-4 w-4" />
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 glassmorphism">
+      <DropdownMenuContent align="end" className="w-56 glassmorphism bg-background/95 backdrop-blur-sm z-50">
         <DropdownMenuLabel className="font-display">{t("actions")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         
@@ -115,7 +115,7 @@ export function ContentActionMenu({
                 {t("allStatuses")}
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
-                <DropdownMenuSubContent className="w-48 glassmorphism">
+                <DropdownMenuSubContent className="w-48 glassmorphism bg-background/95 backdrop-blur-sm z-50">
                   {allStatuses
                     .filter(status => status !== currentStatus)
                     .map(status => (

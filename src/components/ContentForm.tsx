@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -91,13 +90,13 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       ? [initialData.platform] 
       : [];
       
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(initialPlatforms || []);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(initialPlatforms);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: initialData?.title || "",
-      platforms: initialPlatforms || [],
+      platforms: initialPlatforms,
       status: initialData?.status || "Idea",
       publicationDate: initialData?.publicationDate,
       notes: initialData?.notes || "",
@@ -137,7 +136,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       };
 
       // Ensure we have valid platforms data
-      const platformsValue = Array.isArray(values.platforms) ? values.platforms : [];
+      const platformsValue = Array.isArray(values.platforms) ? values.platforms : selectedPlatforms;
       const firstPlatform = platformsValue.length > 0 ? platformsValue[0] : "";
 
       const contentData: Omit<ContentItem, "id" | "createdAt" | "updatedAt"> = {
@@ -189,20 +188,19 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
 
   // Function to handle platform selection
   const handlePlatformSelection = (platform: Platform) => {
-    let updatedPlatforms: Platform[] = [];
+    const newSelectedPlatforms = [...selectedPlatforms];
     
-    if (Array.isArray(selectedPlatforms)) {
-      if (selectedPlatforms.includes(platform)) {
-        updatedPlatforms = selectedPlatforms.filter(p => p !== platform);
-      } else {
-        updatedPlatforms = [...selectedPlatforms, platform];
-      }
+    if (newSelectedPlatforms.includes(platform)) {
+      // Remove the platform if already selected
+      const updatedPlatforms = newSelectedPlatforms.filter(p => p !== platform);
+      setSelectedPlatforms(updatedPlatforms);
+      form.setValue("platforms", updatedPlatforms);
     } else {
-      updatedPlatforms = [platform];
+      // Add the platform if not already selected
+      const updatedPlatforms = [...newSelectedPlatforms, platform];
+      setSelectedPlatforms(updatedPlatforms);
+      form.setValue("platforms", updatedPlatforms);
     }
-    
-    setSelectedPlatforms(updatedPlatforms);
-    form.setValue("platforms", updatedPlatforms);
     
     // Validate after setting value
     form.trigger("platforms");
@@ -244,11 +242,11 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                           aria-expanded={platformsOpen}
                           className={cn(
                             "w-full justify-between rounded-lg",
-                            !Array.isArray(field.value) || field.value.length === 0 ? "text-muted-foreground" : ""
+                            selectedPlatforms.length === 0 ? "text-muted-foreground" : ""
                           )}
                         >
-                          {Array.isArray(field.value) && field.value.length > 0
-                            ? `${field.value.length} ${t(field.value.length > 1 ? "platforms" : "platform")} ${t("selected")}`
+                          {selectedPlatforms.length > 0
+                            ? `${selectedPlatforms.length} ${t(selectedPlatforms.length > 1 ? "platforms" : "platform")} ${t("selected")}`
                             : t("selectPlatforms")}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -259,7 +257,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                         <CommandInput placeholder={t("searchPlatforms")} />
                         <CommandEmpty>{t("noPlatformFound")}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
-                          {Array.isArray(availablePlatforms) && availablePlatforms.map((platform) => (
+                          {availablePlatforms.map((platform) => (
                             <CommandItem
                               key={platform}
                               value={platform}
@@ -268,7 +266,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  Array.isArray(selectedPlatforms) && selectedPlatforms.includes(platform) ? "opacity-100" : "opacity-0"
+                                  selectedPlatforms.includes(platform) ? "opacity-100" : "opacity-0"
                                 )}
                               />
                               {platform}
@@ -279,7 +277,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                     </PopoverContent>
                   </Popover>
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {Array.isArray(selectedPlatforms) && selectedPlatforms.map((platform) => (
+                    {selectedPlatforms.map((platform) => (
                       <Badge 
                         key={platform} 
                         variant="secondary" 

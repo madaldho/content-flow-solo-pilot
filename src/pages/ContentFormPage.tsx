@@ -9,29 +9,48 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
 
 export default function ContentFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { contentItems } = useContent();
+  const { contentItems, getContentById } = useContent();
   const { t } = useLanguage();
   const [contentItem, setContentItem] = useState<ContentItem | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   
   useEffect(() => {
     // If we have an ID, try to find the content item
-    if (id && contentItems) {
-      const item = Array.isArray(contentItems) ? contentItems.find(item => item.id === id) : undefined;
+    if (id) {
+      const item = getContentById(id);
+      
+      if (!item) {
+        toast.error(t("contentNotFound"));
+        navigate("/content-board");
+        return;
+      }
+      
       setContentItem(item);
     }
+    
+    setIsLoading(false);
 
     // Set page title
     document.title = id ? `${t("editContent")} | ContentFlow` : `${t("addContent")} | ContentFlow`;
-  }, [id, contentItems, t]);
+  }, [id, contentItems, t, navigate, getContentById]);
   
   const handleClose = () => {
     navigate("/content-board");
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20">
+        <div className="animate-pulse text-primary text-lg">{t("loading")}...</div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-secondary/20">
