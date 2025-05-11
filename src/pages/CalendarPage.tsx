@@ -49,15 +49,22 @@ export default function CalendarPage() {
       )}
       
       {/* Add Content Dialog */}
-      <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
+      <Dialog open={isAddingContent} onOpenChange={(open) => {
+        // Only set isAddingContent to false if dialog is closing
+        if (!open) {
+          setIsAddingContent(false);
+        }
+      }}>
         <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto glassmorphism">
           <DialogHeader>
             <DialogTitle className="font-elegant text-2xl">{t("addContent")}</DialogTitle>
             <DialogDescription>{t("addContentDescription")}</DialogDescription>
           </DialogHeader>
-          <ContentForm 
-            onClose={() => setIsAddingContent(false)} 
-          />
+          {isAddingContent && (
+            <ContentForm 
+              onClose={() => setIsAddingContent(false)} 
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

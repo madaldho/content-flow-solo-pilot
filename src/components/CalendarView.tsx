@@ -15,13 +15,15 @@ export function CalendarView({ onSelectContent }: CalendarViewProps) {
   const { contentItems } = useContent();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
+  // Ensure contentItems is an array
+  const safeContentItems = Array.isArray(contentItems) ? contentItems : [];
+
   // Function to find content that should be published on a specific date
   const getContentForDate = (date: Date): ContentItem[] => {
     if (!date) return [];
-    if (!Array.isArray(contentItems)) return [];
     
-    return contentItems.filter((item) => {
-      if (!item.publicationDate) return false;
+    return safeContentItems.filter((item) => {
+      if (!item || !item.publicationDate) return false;
       
       // Compare year, month, and day only
       const itemDate = new Date(item.publicationDate);
