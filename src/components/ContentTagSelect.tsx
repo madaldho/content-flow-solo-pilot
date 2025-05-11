@@ -20,7 +20,6 @@ import { ContentTag } from "@/types/content";
 import { useLanguage } from "@/context/LanguageContext";
 import { useContent } from "@/context/ContentContext";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "./ui/input";
 
 interface ContentTagSelectProps {
   value: ContentTag[];
@@ -39,7 +38,7 @@ export function ContentTagSelect({
   const { tags, addCustomTag } = useContent();
   const [inputValue, setInputValue] = React.useState<string>('');
   
-  // Use custom tags from context or fallback to default list
+  // Default tags as a fallback
   const defaultTags: ContentTag[] = [
     "Education",
     "Entertainment",
@@ -54,6 +53,7 @@ export function ContentTagSelect({
 
   // Combine default tags with custom tags from context
   const availableTags: ContentTag[] = React.useMemo(() => {
+    // Ensure tags is an array before attempting to spread it
     const customTags = Array.isArray(tags) ? tags : [];
     return [...new Set([...defaultTags, ...customTags])];
   }, [tags]);
@@ -93,6 +93,22 @@ export function ContentTagSelect({
     }
   };
 
+  const handleAddCustomTagButton = () => {
+    if (inputValue.trim()) {
+      const newTag = inputValue.trim() as ContentTag;
+      
+      if (!availableTags.includes(newTag)) {
+        addCustomTag(newTag);
+      }
+      
+      if (!safeValue.includes(newTag)) {
+        onValueChange([...safeValue, newTag]);
+      }
+      
+      setInputValue('');
+    }
+  };
+
   return (
     <div className="space-y-2">
       <Popover open={open} onOpenChange={onOpenChange}>
@@ -123,17 +139,9 @@ export function ContentTagSelect({
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  onClick={() => {
-                    const newTag = inputValue.trim() as ContentTag;
-                    if (!availableTags.includes(newTag)) {
-                      addCustomTag(newTag);
-                    }
-                    if (!safeValue.includes(newTag)) {
-                      onValueChange([...safeValue, newTag]);
-                    }
-                    setInputValue('');
-                  }} 
+                  onClick={handleAddCustomTagButton}
                   className="ml-2"
+                  type="button"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>

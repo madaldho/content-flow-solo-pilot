@@ -81,8 +81,8 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
     : defaultPlatforms;
     
   // Ensure initial platforms is always an array
-  const initialPlatforms = initialData?.platforms 
-    ? initialData.platforms 
+  const initialPlatforms = Array.isArray(initialData?.platforms) && initialData.platforms.length > 0
+    ? initialData.platforms
     : initialData?.platform 
       ? [initialData.platform] 
       : [];
@@ -103,7 +103,12 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       productionNotes: initialData?.productionNotes || "",
       equipmentUsed: initialData?.equipmentUsed ? initialData?.equipmentUsed.join(", ") : "",
       contentFiles: initialData?.contentFiles ? initialData?.contentFiles.join(", ") : "",
-      metrics: initialData?.metrics,
+      metrics: initialData?.metrics || {
+        views: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0
+      },
     },
   });
 
@@ -142,7 +147,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
         productionNotes: values.productionNotes,
         equipmentUsed,
         contentFiles,
-        metrics: values.metrics
+        metrics: values.metrics || { views: 0, likes: 0, comments: 0, shares: 0 }
       };
 
       if (initialData) {
@@ -329,13 +334,12 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-lg pointer-events-auto" align="start">
+                    <PopoverContent className="w-auto p-0 rounded-lg" align="start">
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
+                        onSelect={(date) => field.onChange(date)}
                         initialFocus
-                        className={cn("rounded-lg pointer-events-auto")}
                       />
                     </PopoverContent>
                   </Popover>
