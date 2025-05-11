@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Plus, X } from "lucide-react";
 import { Platform, ContentTag, ContentItem, ContentStatus } from "@/types/content";
 import { Badge } from "@/components/ui/badge";
 import { Tags } from "lucide-react";
@@ -81,8 +82,10 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
     : defaultPlatforms;
     
   // Ensure initial platforms is always an array
-  const initialPlatforms = Array.isArray(initialData?.platforms) && initialData.platforms.length > 0
-    ? initialData.platforms
+  const initialPlatforms = initialData?.platforms 
+    ? Array.isArray(initialData.platforms) && initialData.platforms.length > 0
+      ? initialData.platforms
+      : initialData.platform ? [initialData.platform] : []
     : initialData?.platform 
       ? [initialData.platform] 
       : [];
