@@ -1,7 +1,8 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { ContentItem, ContentStats, ContentStatus, ContentTag, HistoryEntry, Platform } from "@/types/content";
 import { toast } from "sonner";
-import { fetchAllContentItems, addContentItem as addContentItemToDb, updateContentItem as updateContentItemInDb, deleteContentItem as deleteContentItemFromDb } from "@/services/contentService";
+import { fetchContent, addContent, updateContent, deleteContent } from "@/services/contentService";
 import { supabase } from "@/integrations/supabase/client";
 import { useCustomOptions } from './CustomOptionsContext';
 
@@ -55,7 +56,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const loadContentItems = async () => {
       try {
         setIsLoading(true);
-        const items = await fetchAllContentItems();
+        const items = await fetchContent();
         setContentItems(items);
         // Save to localStorage as backup
         localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
@@ -148,10 +149,10 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
       };
       
       // Add to database
-      const id = await addContentItemToDb(newItem);
+      const id = await addContent(newItem);
       
       // Update local state with the complete item from server
-      const updatedItems = await fetchAllContentItems();
+      const updatedItems = await fetchContent();
       setContentItems(updatedItems);
       
       toast.success("Content idea added successfully");
@@ -198,10 +199,10 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       try {
         // Update in database
-        await updateContentItemInDb(id, updates);
+        await updateContent(id, updates);
         
         // Update local state with the complete item from server
-        const refreshedItems = await fetchAllContentItems();
+        const refreshedItems = await fetchContent();
         setContentItems(refreshedItems);
         
         toast.success("Content updated");
@@ -226,7 +227,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       // Delete from database
-      await deleteContentItemFromDb(id);
+      await deleteContent(id);
       
       // Update local state
       setContentItems(prev => prev.filter(item => item.id !== id));

@@ -11,7 +11,7 @@ import ContentFormPage from "./pages/ContentFormPage";
 function App() {
   return (
     <CombinedContextWrapper>
-      <div className="font-sans"> {/* Ensure consistent font usage */}
+      <div className="font-poppins min-h-screen bg-background"> {/* Ensure consistent font usage */}
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/content-board" element={<ContentBoardPage />} />
