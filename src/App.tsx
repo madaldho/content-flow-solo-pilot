@@ -11,15 +11,17 @@ import ContentFormPage from "./pages/ContentFormPage";
 function App() {
   return (
     <CombinedContextWrapper>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/content-board" element={<ContentBoardPage />} />
-        <Route path="/content/new" element={<ContentFormPage />} />
-        <Route path="/content/edit/:id" element={<ContentFormPage />} />
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <div className="font-sans"> {/* Ensure consistent font usage */}
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/content-board" element={<ContentBoardPage />} />
+          <Route path="/content/new" element={<ContentFormPage />} />
+          <Route path="/content/edit/:id" element={<ContentFormPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
     </CombinedContextWrapper>
   );
 }

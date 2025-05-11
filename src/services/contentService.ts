@@ -1,182 +1,308 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { ContentItem, ContentStatus, ContentTag, HistoryEntry, Platform } from "@/types/content";
+import { supabase } from '@/integrations/supabase/client';
+import { ContentItem, ContentStatus, Platform, HistoryEntry } from '@/types/content';
+import { v4 as uuidv4 } from 'uuid';
 
-// This service will manage the interactions with the Supabase database
-
-/**
- * Fetch all content items from the database
- */
-export async function fetchAllContentItems(): Promise<ContentItem[]> {
-  const { data, error } = await supabase
-    .from('content_items')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching content items:', error);
-    throw error;
-  }
-
-  // Convert dates and parse JSON fields
-  return (data || []).map(item => {
-    // Parse content_checklist with proper type checking
-    const checklist = item.content_checklist ? (typeof item.content_checklist === 'object' ? item.content_checklist : JSON.parse(String(item.content_checklist))) : null;
-    
-    // Create a properly typed contentChecklist object
-    const contentChecklist = {
-      intro: checklist?.intro === true,
-      mainPoints: checklist?.mainPoints === true,
-      callToAction: checklist?.callToAction === true,
-      outro: checklist?.outro === true
-    };
-
-    // Parse metrics with proper type checking
-    const metrics = item.metrics ? 
-      (typeof item.metrics === 'object' ? item.metrics : JSON.parse(String(item.metrics))) : 
-      {};
-
-    // Parse history with proper type checking - handle if the field doesn't exist
-    let history: HistoryEntry[] = [];
+// Convert Supabase response to ContentItem format
+const mapDbItemToContentItem = (item: any): ContentItem => {
+  // Parse JSON fields
+  const parseJson = (json: any) => {
     try {
-      if (item.history) {
-        const parsedHistory = typeof item.history === 'object' ? item.history : JSON.parse(String(item.history));
-        history = Array.isArray(parsedHistory) ? parsedHistory.map((entry: any) => ({
-          timestamp: new Date(entry.timestamp),
-          previousStatus: entry.previousStatus as ContentStatus,
-          newStatus: entry.newStatus as ContentStatus,
-          changedBy: entry.changedBy
-        })) : [];
-      }
-    } catch (e) {
-      console.error('Error parsing history:', e);
-      history = [];
+      return typeof json === 'string' ? JSON.parse(json) : json;
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+      return json;
     }
-
-    // Handle platforms - get from platforms field if exists, otherwise use the single platform
-    let platforms: Platform[] = [];
-    if (item.platforms) {
-      try {
-        platforms = typeof item.platforms === 'object' ? 
-          (item.platforms as any) : 
-          JSON.parse(String(item.platforms));
-      } catch (e) {
-        console.error('Error parsing platforms:', e);
-        platforms = [item.platform as Platform];
-      }
-    } else {
-      platforms = [item.platform as Platform];
-    }
-
-    return {
-      id: item.id,
-      title: item.title,
-      platform: item.platform as Platform,
-      platforms: platforms,
-      status: item.status as ContentStatus,
-      tags: item.tags as ContentTag[],
-      createdAt: new Date(item.created_at),
-      updatedAt: new Date(item.updated_at),
-      publicationDate: item.publication_date ? new Date(item.publication_date) : undefined,
-      notes: item.notes,
-      referenceLink: item.reference_link,
-      script: item.script,
-      scriptFile: item.script_file,
-      contentChecklist,
-      productionNotes: item.production_notes,
-      equipmentUsed: item.equipment_used,
-      contentFiles: item.content_files,
-      metrics,
-      history
-    };
-  });
-}
-
-/**
- * Add a new content item to the database
- */
-export async function addContentItem(item: Omit<ContentItem, "id" | "createdAt" | "updatedAt">): Promise<string> {
-  const itemToInsert = {
-    title: item.title,
-    platform: item.platform,
-    platforms: item.platforms,
-    status: item.status,
-    tags: item.tags,
-    publication_date: item.publicationDate?.toISOString(),
-    notes: item.notes,
-    reference_link: item.referenceLink,
-    script: item.script,
-    script_file: item.scriptFile,
-    content_checklist: item.contentChecklist,
-    production_notes: item.productionNotes,
-    equipment_used: item.equipmentUsed,
-    content_files: item.contentFiles,
-    metrics: item.metrics,
-    history: item.history || []
   };
 
-  const { data, error } = await supabase
-    .from('content_items')
-    .insert(itemToInsert)
-    .select();
+  // Handle the history array
+  const history = parseJson(item.history) || [];
 
-  if (error) {
-    console.error('Error adding content item:', error);
-    throw error;
+  // Handle platforms array - backwards compatibility
+  let platforms: Platform[] = [];
+  if (item.platform) {
+    // Always include the main platform
+    platforms = [item.platform];
   }
-
-  return data?.[0]?.id;
-}
-
-/**
- * Update an existing content item
- */
-export async function updateContentItem(id: string, updates: Partial<ContentItem>): Promise<void> {
-  // Convert from camelCase to snake_case for the database
-  const updatesForDb: Record<string, any> = {};
   
-  if ('title' in updates) updatesForDb.title = updates.title;
-  if ('platform' in updates) updatesForDb.platform = updates.platform;
-  if ('platforms' in updates) updatesForDb.platforms = updates.platforms;
-  if ('status' in updates) updatesForDb.status = updates.status;
-  if ('tags' in updates) updatesForDb.tags = updates.tags;
-  if ('publicationDate' in updates) updatesForDb.publication_date = updates.publicationDate?.toISOString();
-  if ('notes' in updates) updatesForDb.notes = updates.notes;
-  if ('referenceLink' in updates) updatesForDb.reference_link = updates.referenceLink;
-  if ('script' in updates) updatesForDb.script = updates.script;
-  if ('scriptFile' in updates) updatesForDb.script_file = updates.scriptFile;
-  if ('contentChecklist' in updates) updatesForDb.content_checklist = updates.contentChecklist;
-  if ('productionNotes' in updates) updatesForDb.production_notes = updates.productionNotes;
-  if ('equipmentUsed' in updates) updatesForDb.equipment_used = updates.equipmentUsed;
-  if ('contentFiles' in updates) updatesForDb.content_files = updates.contentFiles;
-  if ('metrics' in updates) updatesForDb.metrics = updates.metrics;
-  if ('history' in updates) updatesForDb.history = updates.history;
+  // Handle metrics object
+  const metrics = parseJson(item.metrics);
+
+  // Handle content checklist
+  const contentChecklist = parseJson(item.content_checklist) || {
+    intro: false,
+    mainPoints: false,
+    callToAction: false,
+    outro: false
+  };
+
+  // Convert from DB format to app format
+  return {
+    id: item.id,
+    title: item.title,
+    platform: item.platform, // Keep for backward compatibility
+    platforms: platforms, // Add new multi-platform support
+    status: item.status as ContentStatus,
+    tags: item.tags || [],
+    createdAt: new Date(item.created_at),
+    updatedAt: new Date(item.updated_at),
+    publicationDate: item.publication_date ? new Date(item.publication_date) : undefined,
+    notes: item.notes,
+    referenceLink: item.reference_link,
+    script: item.script,
+    scriptFile: item.script_file,
+    contentChecklist: contentChecklist,
+    productionNotes: item.production_notes,
+    equipmentUsed: item.equipment_used || [],
+    contentFiles: item.content_files || [],
+    metrics: metrics,
+    history: history,
+  };
+};
+
+// Fetch all content items
+export const fetchContent = async (): Promise<ContentItem[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('content_items')
+      .select('*')
+      .order('updated_at', { ascending: false });
+      
+    if (error) throw error;
+    
+    if (!data) return [];
+    
+    return data.map(mapDbItemToContentItem);
+  } catch (error) {
+    console.error('Error fetching content:', error);
+    throw error;
+  }
+};
+
+// Add a new content item
+export const addContent = async (
+  content: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "contentChecklist" | "history">
+): Promise<string> => {
+  try {
+    // Prepare data for insertion
+    const now = new Date().toISOString();
+    const id = uuidv4();
+    
+    // Format publication date
+    const publication_date = content.publicationDate 
+      ? new Date(content.publicationDate).toISOString() 
+      : null;
+      
+    // Create a history entry for the initial status
+    const initialHistory: HistoryEntry[] = [{
+      timestamp: new Date(),
+      newStatus: content.status
+    }];
+    
+    // Insert the content item
+    const { error } = await supabase
+      .from('content_items')
+      .insert({
+        id,
+        title: content.title,
+        platform: content.platform,
+        status: content.status,
+        tags: content.tags,
+        publication_date,
+        notes: content.notes,
+        reference_link: content.referenceLink,
+        script: content.script,
+        script_file: content.scriptFile,
+        production_notes: content.productionNotes,
+        equipment_used: content.equipmentUsed,
+        content_files: content.contentFiles,
+        metrics: content.metrics ? JSON.stringify(content.metrics) : null,
+        history: JSON.stringify(initialHistory),
+        content_checklist: JSON.stringify({
+          intro: false,
+          mainPoints: false,
+          callToAction: false,
+          outro: false
+        }),
+        created_at: now,
+        updated_at: now
+      });
+      
+    if (error) throw error;
+    
+    return id;
+  } catch (error) {
+    console.error('Error adding content:', error);
+    throw error;
+  }
+};
+
+// Update an existing content item
+export const updateContent = async (
+  id: string, 
+  updates: Partial<ContentItem>
+): Promise<void> => {
+  try {
+    // Get the current item to compare status for history
+    const { data: currentItem, error: fetchError } = await supabase
+      .from('content_items')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (fetchError) throw fetchError;
+    
+    // Prepare data for update
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
+    
+    // Map fields from ContentItem to DB columns
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.platform !== undefined) updateData.platform = updates.platform;
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.tags !== undefined) updateData.tags = updates.tags;
+    if (updates.publicationDate !== undefined) {
+      updateData.publication_date = updates.publicationDate 
+        ? new Date(updates.publicationDate).toISOString() 
+        : null;
+    }
+    if (updates.notes !== undefined) updateData.notes = updates.notes;
+    if (updates.referenceLink !== undefined) updateData.reference_link = updates.referenceLink;
+    if (updates.script !== undefined) updateData.script = updates.script;
+    if (updates.scriptFile !== undefined) updateData.script_file = updates.scriptFile;
+    if (updates.contentChecklist !== undefined) {
+      updateData.content_checklist = JSON.stringify(updates.contentChecklist);
+    }
+    if (updates.productionNotes !== undefined) updateData.production_notes = updates.productionNotes;
+    if (updates.equipmentUsed !== undefined) updateData.equipment_used = updates.equipmentUsed;
+    if (updates.contentFiles !== undefined) updateData.content_files = updates.contentFiles;
+    if (updates.metrics !== undefined) updateData.metrics = JSON.stringify(updates.metrics);
+    
+    // If status has changed, update history
+    if (updates.status && currentItem && updates.status !== currentItem.status) {
+      // Parse existing history or initialize a new array
+      const currentHistory = currentItem.history ? 
+        (typeof currentItem.history === 'string' ? 
+          JSON.parse(currentItem.history) : currentItem.history) : [];
+      
+      // Add new history entry
+      const newHistory = [
+        ...currentHistory,
+        {
+          timestamp: new Date(),
+          previousStatus: currentItem.status,
+          newStatus: updates.status
+        }
+      ];
+      
+      updateData.history = JSON.stringify(newHistory);
+    }
+    
+    // Update the content item
+    const { error } = await supabase
+      .from('content_items')
+      .update(updateData)
+      .eq('id', id);
+      
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error updating content:', error);
+    throw error;
+  }
+};
+
+// Delete a content item
+export const deleteContent = async (id: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('content_items')
+      .delete()
+      .eq('id', id);
+      
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error deleting content:', error);
+    throw error;
+  }
+};
+
+// Helper functions
+export const getContentByStatus = (
+  items: ContentItem[], 
+  status: ContentStatus
+): ContentItem[] => {
+  return items.filter(item => item.status === status);
+};
+
+export const getContentStats = (items: ContentItem[]) => {
+  // Current date for calculations
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - 7);
   
-  // Always update the updated_at timestamp
-  updatesForDb.updated_at = new Date().toISOString();
-
-  const { error } = await supabase
-    .from('content_items')
-    .update(updatesForDb)
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error updating content item:', error);
-    throw error;
-  }
-}
-
-/**
- * Delete a content item
- */
-export async function deleteContentItem(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('content_items')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error deleting content item:', error);
-    throw error;
-  }
-}
+  // Count by status
+  const statusBreakdown: Record<ContentStatus, number> = {
+    'Idea': 0,
+    'Script': 0,
+    'Recorded': 0,
+    'Edited': 0,
+    'Ready to Publish': 0,
+    'Published': 0
+  };
+  
+  // Count items
+  let publishedThisWeek = 0;
+  let bestPerforming = null;
+  let maxViews = 0;
+  
+  // Process each item
+  items.forEach(item => {
+    // Count by status
+    if (statusBreakdown[item.status] !== undefined) {
+      statusBreakdown[item.status]++;
+    }
+    
+    // Count published this week
+    if (
+      item.status === 'Published' && 
+      item.publicationDate && 
+      new Date(item.publicationDate) >= weekStart
+    ) {
+      publishedThisWeek++;
+    }
+    
+    // Find best performing
+    if (
+      item.metrics && 
+      item.metrics.views && 
+      item.metrics.views > maxViews
+    ) {
+      maxViews = item.metrics.views;
+      bestPerforming = {
+        id: item.id,
+        title: item.title,
+        platform: item.platform,
+        metrics: {
+          views: item.metrics.views,
+          likes: item.metrics.likes,
+          comments: item.metrics.comments,
+          shares: item.metrics.shares
+        }
+      };
+    }
+  });
+  
+  // Count unfinished
+  const unfinishedCount = items.filter(
+    item => item.status !== 'Published'
+  ).length;
+  
+  return {
+    totalActive: items.length,
+    publishedThisWeek,
+    bestPerforming,
+    unfinishedCount,
+    statusBreakdown
+  };
+};
