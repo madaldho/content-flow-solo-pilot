@@ -43,7 +43,7 @@ export async function fetchAllContentItems(): Promise<ContentItem[]> {
         const parsedHistory = typeof item.history === 'object' ? item.history : JSON.parse(String(item.history));
         history = Array.isArray(parsedHistory) ? parsedHistory.map((entry: any) => ({
           timestamp: new Date(entry.timestamp),
-          previousStatus: entry.previousStatus,
+          previousStatus: entry.previousStatus as ContentStatus,
           newStatus: entry.newStatus as ContentStatus,
           changedBy: entry.changedBy
         })) : [];
@@ -53,10 +53,26 @@ export async function fetchAllContentItems(): Promise<ContentItem[]> {
       history = [];
     }
 
+    // Handle platforms - get from platforms field if exists, otherwise use the single platform
+    let platforms: Platform[] = [];
+    if (item.platforms) {
+      try {
+        platforms = typeof item.platforms === 'object' ? 
+          (item.platforms as any) : 
+          JSON.parse(String(item.platforms));
+      } catch (e) {
+        console.error('Error parsing platforms:', e);
+        platforms = [item.platform as Platform];
+      }
+    } else {
+      platforms = [item.platform as Platform];
+    }
+
     return {
       id: item.id,
       title: item.title,
       platform: item.platform as Platform,
+      platforms: platforms,
       status: item.status as ContentStatus,
       tags: item.tags as ContentTag[],
       createdAt: new Date(item.created_at),
@@ -83,6 +99,7 @@ export async function addContentItem(item: Omit<ContentItem, "id" | "createdAt" 
   const itemToInsert = {
     title: item.title,
     platform: item.platform,
+    platforms: item.platforms,
     status: item.status,
     tags: item.tags,
     publication_date: item.publicationDate?.toISOString(),
@@ -120,6 +137,7 @@ export async function updateContentItem(id: string, updates: Partial<ContentItem
   
   if ('title' in updates) updatesForDb.title = updates.title;
   if ('platform' in updates) updatesForDb.platform = updates.platform;
+  if ('platforms' in updates) updatesForDb.platforms = updates.platforms;
   if ('status' in updates) updatesForDb.status = updates.status;
   if ('tags' in updates) updatesForDb.tags = updates.tags;
   if ('publicationDate' in updates) updatesForDb.publication_date = updates.publicationDate?.toISOString();

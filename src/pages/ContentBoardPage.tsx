@@ -4,10 +4,6 @@ import { ContentBoard } from "@/components/ContentBoard";
 import { Header } from "@/components/Header";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ContentForm } from "@/components/ContentForm";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentItem, Platform } from "@/types/content";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -15,7 +11,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export default function ContentBoardPage() {
   const { contentItems } = useContent();
   const { t } = useLanguage();
-  const [isAddingContent, setIsAddingContent] = useState(false);
   const [platformFilter, setPlatformFilter] = useState<Platform | "All">("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ContentItem[]>([]);
@@ -26,7 +21,9 @@ export default function ContentBoardPage() {
   const allContentItems = Array.isArray(contentItems) ? contentItems : [];
   
   // Get unique platforms from content items
-  const platforms = ["All", ...Array.from(new Set(allContentItems.map(item => item.platform)))] as (Platform | "All")[];
+  const platforms = ["All", ...Array.from(new Set(allContentItems.flatMap(item => 
+    item.platforms ? item.platforms : [item.platform]
+  )))] as (Platform | "All")[];
   
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -39,6 +36,7 @@ export default function ContentBoardPage() {
     const lowerQuery = query.toLowerCase();
     let results = allContentItems.filter(item => 
       item.title.toLowerCase().includes(lowerQuery) ||
+      (item.platforms && item.platforms.some(p => p.toLowerCase().includes(lowerQuery))) ||
       item.platform.toLowerCase().includes(lowerQuery) ||
       item.status.toLowerCase().includes(lowerQuery) ||
       (Array.isArray(item.tags) && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery))) ||
@@ -47,7 +45,10 @@ export default function ContentBoardPage() {
     
     // Apply platform filter if active
     if (platformFilter !== "All") {
-      results = results.filter(item => item.platform === platformFilter);
+      results = results.filter(item => 
+        (item.platforms && item.platforms.includes(platformFilter)) || 
+        item.platform === platformFilter
+      );
     }
     
     setSearchResults(results);
@@ -69,9 +70,9 @@ export default function ContentBoardPage() {
       
       <main className="flex-1 container py-6 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glassmorphism p-4 rounded-xl shadow-sm">
-          <h1 className="text-3xl font-elegant">{t("contentBoard")}</h1>
+          <h1 className="text-2xl">{t("contentBoard")}</h1>
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <div className="flex items-center gap-2">
             <Select 
               value={platformFilter} 
               onValueChange={(value) => handlePlatformFilterChange(value as Platform | "All")}
@@ -87,35 +88,12 @@ export default function ContentBoardPage() {
                 ))}
               </SelectContent>
             </Select>
-            
-            <Button 
-              onClick={() => setIsAddingContent(true)}
-              className="rounded-xl transition-all hover:shadow-lg"
-            >
-              <PlusIcon className="h-4 w-4 mr-2" />
-              {t("addContent")}
-            </Button>
           </div>
         </div>
 
         {/* Main Content Board */}
         <ContentBoard />
       </main>
-      
-      {/* Add Content Dialog */}
-      {isAddingContent && (
-        <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
-          <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto glassmorphism">
-            <DialogHeader>
-              <DialogTitle className="font-elegant text-2xl">{t("addContent")}</DialogTitle>
-              <DialogDescription>{t("addContentDescription")}</DialogDescription>
-            </DialogHeader>
-            <ContentForm 
-              onClose={() => setIsAddingContent(false)} 
-            />
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }

@@ -92,7 +92,7 @@
     @apply bg-background text-foreground font-sans;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
+    @apply font-medium;
   }
 }
 
@@ -136,7 +136,7 @@
 }
 .kanban-column {
   @apply bg-background/50 backdrop-blur-sm border rounded-lg;
-  min-height: 300px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
 }
@@ -146,24 +146,24 @@
   @apply bg-background/80 backdrop-blur-md border shadow-md;
 }
 
-/* Status color classes - defined directly instead of using @apply */
+/* Status color classes - defined directly */
 .status-idea {
-  background-color: hsl(var(--status-idea));
+  background-color: #6366f1;
 }
 .status-script {
-  background-color: hsl(var(--status-script));
+  background-color: #8b5cf6;
 }
 .status-recorded {
-  background-color: hsl(var(--status-recorded));
+  background-color: #ec4899;
 }
 .status-edited {
-  background-color: hsl(var(--status-edited));
+  background-color: #f59e0b;
 }
 .status-ready {
-  background-color: hsl(var(--status-ready));
+  background-color: #10b981;
 }
 .status-published {
-  background-color: hsl(var(--status-published));
+  background-color: #6b7280;
 }
 
 /* Card gradient effects */

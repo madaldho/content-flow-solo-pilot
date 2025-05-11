@@ -1,22 +1,19 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ContentStatus, ContentItem } from "@/types/content";
 import { ContentStatusCard } from "./ContentStatusCard";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ContentForm } from "./ContentForm";
-import { ContentDetails } from "./ContentDetails";
-import { PlusIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { PlusIcon, ChevronDown, ChevronUp } from "lucide-react";
 
 interface ContentBoardColumnProps {
   status: ContentStatus;
   items: ContentItem[];
   onItemClick: (id: string) => void;
-  onAddItem?: () => void;
   index: number;
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, status: ContentStatus) => void;
@@ -28,7 +25,6 @@ function ContentBoardColumn({
   status, 
   items = [], 
   onItemClick, 
-  onAddItem, 
   index, 
   onDragOver, 
   onDrop, 
@@ -37,7 +33,7 @@ function ContentBoardColumn({
 }: ContentBoardColumnProps) {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
-  const [isExpanded, setIsExpanded] = useState(!isMobile);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   const statusColors: Record<ContentStatus, string> = {
     "Idea": "border-status-idea",
@@ -66,7 +62,7 @@ function ContentBoardColumn({
 
   // Reset expansion state when switching between mobile and desktop
   useEffect(() => {
-    setIsExpanded(!isMobile);
+    setIsExpanded(false);
   }, [isMobile]);
 
   return (
@@ -77,8 +73,8 @@ function ContentBoardColumn({
       data-status={status}
     >
       <div 
-        className={`flex items-center justify-between p-3 ${statusColors[status]} mb-0 sticky top-0 bg-background/90 backdrop-blur-sm z-10 font-display rounded-t-lg cursor-pointer`}
-        onClick={isMobile ? toggleExpand : undefined}
+        className={`flex items-center justify-between p-3 ${statusColors[status]} mb-0 sticky top-0 bg-background/90 backdrop-blur-sm z-10 font-medium rounded-t-lg cursor-pointer`}
+        onClick={toggleExpand}
       >
         <div className="flex items-center">
           <div className={`w-2 h-2 rounded-full bg-status-${status.toLowerCase().replace(/\s+/g, "")} mr-2`}></div>
@@ -86,18 +82,16 @@ function ContentBoardColumn({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs px-2 py-1 rounded-full bg-muted">{safeItems.length}</span>
-          {isMobile && (
-            isExpanded ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            )
+          {isExpanded ? (
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           )}
         </div>
       </div>
       
       <div 
-        className={`space-y-3 mb-4 flex-1 p-2 mobile-dropdown ${isMobile ? (isExpanded ? 'expanded' : 'collapsed') : ''}`}
+        className={`space-y-3 mb-4 flex-1 p-2 mobile-dropdown ${isExpanded ? 'expanded' : 'collapsed'}`}
       >
         {safeItems.length > 0 ? (
           <div className="numbered-list">
@@ -106,10 +100,7 @@ function ContentBoardColumn({
                 key={item.id}
                 id={`wrapper-${item.id}`}
                 className="kanban-card numbered-item transition-all duration-200 cursor-pointer mb-3"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onItemClick(item.id);
-                }}
+                onClick={() => onItemClick(item.id)}
                 draggable={true}
                 onDragStart={(e) => {
                   console.log(`Starting drag for item ${item.id} with status ${item.status}`);
@@ -123,10 +114,7 @@ function ContentBoardColumn({
                 <ContentStatusCard 
                   key={item.id} 
                   item={item} 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onItemClick(item.id);
-                  }}
+                  onClick={() => onItemClick(item.id)}
                   gradientClass={gradientClasses[itemIndex % 6]}
                 />
               </div>
@@ -138,29 +126,15 @@ function ContentBoardColumn({
           </div>
         )}
       </div>
-      
-      {status === "Idea" && onAddItem && (
-        <Button 
-          variant="outline" 
-          className="w-full mb-2 rounded-xl hover:bg-primary/10 font-display" 
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onAddItem) onAddItem();
-          }}
-        >
-          <PlusIcon className="h-4 w-4 mr-2" /> {t("addIdea")}
-        </Button>
-      )}
     </div>
   );
 }
 
 export function ContentBoard() {
+  const navigate = useNavigate();
   const { getContentByStatus, updateContentItem } = useContent();
-  const [selectedContentId, setSelectedContentId] = useState<string | null>(null);
-  const [isAddingContent, setIsAddingContent] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const [dragError, setDragError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [draggingOverStatus, setDraggingOverStatus] = useState<ContentStatus | null>(null);
   const { t } = useLanguage();
   const isMobile = useIsMobile();
@@ -168,17 +142,13 @@ export function ContentBoard() {
   // Status columns for the board
   const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
   
-  // Add an effect to show the history update when a card is moved
-  useEffect(() => {
-    const handleHistoryUpdate = (itemId: string) => {
-      console.log(`History updated for item ${itemId}`);
-    };
+  const handleItemClick = (id: string) => {
+    navigate(`/content/edit/${id}`);
+  };
 
-    // Cleanup function
-    return () => {
-      // Any cleanup code if necessary
-    };
-  }, []);
+  const handleAddContent = () => {
+    navigate('/content/new');
+  };
   
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>, targetStatus: ContentStatus) => {
     e.preventDefault();
@@ -286,7 +256,7 @@ export function ContentBoard() {
     dragImg.classList.add("drag-ghost", "bg-background", "p-2", "rounded", "shadow-lg", "border");
     dragImg.innerHTML = `
       <div class="text-sm font-medium">${item.title}</div>
-      <div class="text-xs text-muted-foreground">${item.platform}</div>
+      <div class="text-xs text-muted-foreground">${item.platforms?.[0] || item.platform}</div>
     `;
     document.body.appendChild(dragImg);
     e.dataTransfer.setDragImage(dragImg, 20, 20);
@@ -304,17 +274,26 @@ export function ContentBoard() {
         </div>
       )}
       
-      <div className={`flex ${isMobile ? 'flex-col' : 'overflow-x-auto'} gap-4 pb-4 ${isMobile ? '' : 'scrollbar-hide'} h-[calc(100vh-12rem)] font-sans`}>
+      <div className="mb-4">
+        <Button
+          onClick={handleAddContent}
+          className="rounded-xl transition-all hover:shadow-lg"
+        >
+          <PlusIcon className="h-4 w-4 mr-2" />
+          {t("addContent")}
+        </Button>
+      </div>
+      
+      <div className={`flex ${isMobile ? 'flex-col' : 'overflow-x-auto'} gap-4 pb-4 ${isMobile ? '' : 'scrollbar-hide'} h-[calc(100vh-12rem)]`}>
         {statuses.map((status, index) => (
           <div 
             key={status}
-            className={`${isMobile ? 'w-full' : 'min-w-[300px]'} transition-all bg-background/70 backdrop-blur-sm p-2 rounded-lg border ${isDragging ? 'drop-target' : ''}`}
+            className={`${isMobile ? 'w-full mb-3' : 'min-w-[300px]'} transition-all bg-background/70 backdrop-blur-sm p-2 rounded-lg border ${isDragging ? 'drop-target' : ''}`}
           >
             <ContentBoardColumn
               status={status}
               items={getContentByStatus(status) || []}
-              onItemClick={(id) => setSelectedContentId(id)}
-              onAddItem={status === "Idea" ? () => setIsAddingContent(true) : undefined}
+              onItemClick={handleItemClick}
               index={index}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
@@ -324,26 +303,6 @@ export function ContentBoard() {
           </div>
         ))}
       </div>
-      
-      {/* Content Details Dialog */}
-      <ContentDetails
-        contentId={selectedContentId}
-        onClose={() => setSelectedContentId(null)}
-      />
-      
-      {/* Add Content Dialog */}
-      {isAddingContent && (
-        <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
-          <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto glassmorphism">
-            <DialogHeader>
-              <DialogTitle className="font-display">{t("addIdea")}</DialogTitle>
-            </DialogHeader>
-            <ContentForm 
-              onClose={() => setIsAddingContent(false)} 
-            />
-          </DialogContent>
-        </Dialog>
-      )}
     </>
   );
 }
