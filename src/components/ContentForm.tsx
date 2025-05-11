@@ -238,7 +238,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                             !field.value?.length && "text-muted-foreground"
                           )}
                         >
-                          {field.value?.length > 0
+                          {Array.isArray(field.value) && field.value.length > 0
                             ? `${field.value.length} ${t(field.value.length > 1 ? "platforms" : "platform")} ${t("selected")}`
                             : t("selectPlatforms")}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -250,7 +250,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                         <CommandInput placeholder={t("searchPlatforms")} />
                         <CommandEmpty>{t("noPlatformFound")}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
-                          {availablePlatforms.map((platform) => (
+                          {availablePlatforms && availablePlatforms.map((platform) => (
                             <CommandItem
                               key={platform}
                               value={platform}
@@ -270,7 +270,7 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
                     </PopoverContent>
                   </Popover>
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {selectedPlatforms.map((platform) => (
+                    {Array.isArray(selectedPlatforms) && selectedPlatforms.map((platform) => (
                       <Badge 
                         key={platform} 
                         variant="secondary" 
