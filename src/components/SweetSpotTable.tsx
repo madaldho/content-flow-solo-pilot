@@ -121,7 +121,7 @@ export function SweetSpotTable({ entries, onDelete, onEdit, isExample = false }:
                             <Button 
                               variant="ghost" 
                               size="icon"
-                              onClick={() => onDelete(entry)}
+                              onClick={() => onDelete(entry.id)}
                               className="text-destructive hover:text-destructive"
                               title={t("delete") || "Delete"}
                             >

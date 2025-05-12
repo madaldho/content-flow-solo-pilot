@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { SweetSpotEntry, SweetSpotAnalysis } from "@/types/sweetSpot";
 import { sweetSpotService } from "@/services/sweetSpotService";
@@ -20,12 +20,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Card } from "@/components/ui/card";
 
 export default function SweetSpotAnalysisPage() {
   const [entries, setEntries] = useState<SweetSpotEntry[]>([]);
   const [analysis, setAnalysis] = useState<SweetSpotAnalysis | null>(null);
   const [showExampleData, setShowExampleData] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const { t } = useLanguage();
   const navigate = useNavigate();
   
@@ -58,16 +59,16 @@ export default function SweetSpotAnalysisPage() {
   
   // Show delete confirmation
   const handleConfirmDelete = (id: string) => {
-    setDeleteConfirm(id);
+    setDeleteConfirmId(id);
   };
   
   // Handle deleting an entry
   const handleDelete = () => {
-    if (deleteConfirm) {
-      sweetSpotService.deleteEntry(deleteConfirm);
+    if (deleteConfirmId) {
+      sweetSpotService.deleteEntry(deleteConfirmId);
       toast.success(t("entryDeleted") || "Entry deleted successfully");
       loadData();
-      setDeleteConfirm(null);
+      setDeleteConfirmId(null);
     }
   };
   
@@ -79,7 +80,7 @@ export default function SweetSpotAnalysisPage() {
     <Layout>
       <div className="container px-3 md:px-6 py-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <div className="glassmorphism p-4 rounded-xl shadow-sm">
+          <div className="bg-gradient-to-br from-primary/10 to-background p-4 rounded-xl shadow-sm">
             <h1 className="text-2xl md:text-3xl font-bold">
               {t("sweetSpot") || "Sweet Spot Analysis"}
             </h1>
@@ -119,17 +120,17 @@ export default function SweetSpotAnalysisPage() {
         
         {/* Analysis Summary */}
         {analysis && entries.length > 0 && (
-          <div className="mb-8">
+          <Card className="mb-8 p-6 border bg-card/50 backdrop-blur-sm">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <span className="inline-block w-1.5 h-6 bg-primary rounded mr-2"></span>
               {t("yourAnalysis") || "Your Analysis"}
             </h2>
             <SweetSpotSummary analysis={analysis} />
-          </div>
+          </Card>
         )}
         
         {/* User's data table */}
-        <div className="mb-8">
+        <Card className="mb-8 p-6 border bg-card/50 backdrop-blur-sm">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <span className="inline-block w-1.5 h-6 bg-secondary rounded mr-2"></span>
             {t("yourData") || "Your Data"}
@@ -152,11 +153,11 @@ export default function SweetSpotAnalysisPage() {
               </Button>
             </div>
           )}
-        </div>
+        </Card>
         
         {/* Example Data section */}
         {showExampleData && (
-          <div className="mb-6">
+          <Card className="mb-6 p-6 border bg-card/50 backdrop-blur-sm">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <span className="inline-block w-1.5 h-6 bg-accent rounded mr-2"></span>
               {t("exampleAnalysis") || "Example Analysis"}
@@ -165,7 +166,7 @@ export default function SweetSpotAnalysisPage() {
               <SweetSpotSummary analysis={exampleAnalysis} />
             </div>
             
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 mt-8">
               <span className="inline-block w-1.5 h-6 bg-accent rounded mr-2"></span>
               {t("exampleData") || "Example Data"}
             </h2>
@@ -173,12 +174,12 @@ export default function SweetSpotAnalysisPage() {
               entries={exampleData} 
               isExample={true}
             />
-          </div>
+          </Card>
         )}
       </div>
       
       {/* Delete confirmation dialog */}
-      <AlertDialog open={deleteConfirm !== null} onOpenChange={() => setDeleteConfirm(null)}>
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={() => setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>

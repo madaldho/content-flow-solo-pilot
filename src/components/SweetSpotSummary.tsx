@@ -1,4 +1,5 @@
 
+import React from "react";
 import { SweetSpotAnalysis } from "@/types/sweetSpot";
 import { useLanguage } from "@/context/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,7 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {/* Grand Total */}
-      <Card className="bg-gradient-to-br from-card to-primary/5 border hover:shadow-md transition-all">
+      <Card className="bg-gradient-to-br from-card to-primary/10 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
@@ -30,7 +31,7 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
       </Card>
       
       {/* Conversion */}
-      <Card className="bg-gradient-to-br from-card to-secondary/5 border hover:shadow-md transition-all">
+      <Card className="bg-gradient-to-br from-card to-secondary/10 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-secondary" />
@@ -46,7 +47,7 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
       </Card>
       
       {/* Sales Per Month */}
-      <Card className="bg-gradient-to-br from-card to-accent/5 border hover:shadow-md transition-all">
+      <Card className="bg-gradient-to-br from-card to-accent/10 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-accent" />
@@ -62,7 +63,7 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
       </Card>
       
       {/* Revenue Per Month */}
-      <Card className="md:col-span-2 lg:col-span-2 bg-gradient-to-br from-card to-primary/5 border hover:shadow-md transition-all">
+      <Card className="md:col-span-2 lg:col-span-2 bg-gradient-to-br from-card to-primary/10 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
@@ -78,7 +79,7 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
       </Card>
       
       {/* Product Price */}
-      <Card className="bg-gradient-to-br from-card to-secondary/5 border hover:shadow-md transition-all">
+      <Card className="bg-gradient-to-br from-card to-secondary/10 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-secondary" />

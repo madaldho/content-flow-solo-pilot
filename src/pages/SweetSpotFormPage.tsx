@@ -61,7 +61,7 @@ export default function SweetSpotFormPage() {
           </Button>
         </div>
       
-        <div className="glassmorphism p-5 rounded-xl shadow-sm mb-6">
+        <div className="bg-gradient-to-br from-primary/10 to-background p-5 rounded-xl shadow-sm mb-6">
           <h1 className="text-2xl md:text-3xl font-bold">
             {isEditing ? 
               (t("editSweetSpotEntry") || "Edit Sweet Spot Entry") : 
