@@ -1,35 +1,27 @@
 
-export type SweetSpotEntry = {
+export interface SweetSpotEntry {
   id: string;
-  account: string;
   niche: string;
+  account: string;
+  keywords: string;
   audience: number;
-  platform: string;
   revenueStream: string;
-  pricing: number;
-  createdAt?: string;
-  updatedAt?: string;
-};
+  pricing: string;
+}
 
-export type SweetSpotAnalysis = {
+export interface NicheStats {
+  niche: string;
+  total: number;
+  assumptionPercentage: number;
+  assumptionAudience: number;
+  entries: SweetSpotEntry[];
+}
+
+export interface SweetSpotAnalysis {
+  niches: NicheStats[];
   grandTotal: number;
   conversion: number;
   salesPerMonth: number;
-  revenuePerMonth: string; // Formatted currency string
-  productPrice: string; // Formatted currency string
-};
-
-export type SweetSpotAssumption = {
-  niche: string;
-  engagementRate: number;
-  conversionRate: number;
-  buyerRate: number;
-};
-
-export type SweetSpotResult = {
-  niche: string;
-  engagedAudience: number;
-  interestedAudience: number;
-  buyers: number;
-  revenue: number;
-};
+  revenuePerMonth: string;
+  productPrice: string;
+}

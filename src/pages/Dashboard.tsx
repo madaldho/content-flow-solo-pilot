@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, FileText, Search, TrendingUp, Calendar, Compass } from "lucide-react";
+import { PlusIcon, FileText, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ContentForm } from "@/components/ContentForm";
 import { DashboardStats } from "@/components/DashboardStats";
@@ -43,47 +42,33 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-secondary/20">
       <Header onSearch={handleSearch} />
       
       <main className="flex-1 container py-4 md:py-6 space-y-4 md:space-y-6 px-3 md:px-4">
         {/* Dashboard Header */}
-        <div className="relative overflow-hidden rounded-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-90"></div>
-          <div className="relative z-10 p-6 md:p-8 text-white">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome to Content Hub</h1>
-            <p className="text-indigo-100 max-w-2xl">Track, manage, and optimize your content strategy across all platforms from one central dashboard.</p>
-            
-            <div className="flex flex-wrap gap-3 mt-6">
-              <Button 
-                onClick={() => navigate("/sweet-spot")}
-                className="bg-white text-indigo-700 hover:bg-indigo-50"
-              >
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Sweet Spot Analysis
-              </Button>
-              
-              <Button 
-                onClick={() => exportToCSV()} 
-                variant="outline" 
-                className="border-white/30 text-white hover:bg-white/10"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                {t("export")}
-              </Button>
-            </div>
-          </div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glassmorphism p-3 md:p-4 rounded-xl shadow-sm">
+          <h1 className="text-2xl md:text-3xl font-elegant">{t("dashboard")}</h1>
           
-          {/* Decorative elements */}
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -mb-32 -mr-32"></div>
-          <div className="absolute top-0 right-20 w-20 h-20 bg-purple-300 opacity-20 rounded-full -mt-10"></div>
+          <div className="flex flex-col xs:flex-row w-full sm:w-auto items-center gap-2">
+            <Button 
+              onClick={() => exportToCSV()} 
+              variant="outline" 
+              className="rounded-xl w-full xs:w-auto text-sm"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              {t("export")}
+            </Button>
+            
+          
+          </div>
         </div>
         
         {/* Search Results */}
         {isSearching && (
-          <div className="space-y-4 bg-white dark:bg-slate-800/60 p-5 rounded-xl shadow-md backdrop-blur-sm border border-indigo-100 dark:border-indigo-900/30">
+          <div className="space-y-4 glassmorphism p-3 md:p-4 rounded-xl shadow-sm">
             <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2">
-              <h2 className="text-lg md:text-xl font-bold text-indigo-800 dark:text-indigo-300">
+              <h2 className="text-lg md:text-xl font-elegant">
                 {t("searchResults")} ({searchResults.length})
               </h2>
               <Button
@@ -104,12 +89,12 @@ export default function Dashboard() {
                 {searchResults.map((item, index) => (
                   <div 
                     key={item.id} 
-                    className={`content-card numbered-item p-4 rounded-lg cursor-pointer transition-all duration-200 bg-gradient-to-br from-white to-indigo-50/50 dark:from-slate-800 dark:to-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-700`}
+                    className={`content-card numbered-item card-hover glassmorphism p-4 rounded-lg cursor-pointer transition-all duration-200 bg-gradient-to-br from-background to-secondary/20 border ${index % 2 === 0 ? 'border-primary/10' : 'border-secondary/40'}`}
                     onClick={() => setSelectedContentId(item.id)}
                   >
-                    <h3 className="font-medium line-clamp-1">{item.title}</h3>
+                    <h3 className="font-medium line-clamp-1 font-elegant">{item.title}</h3>
                     <div className="flex justify-between items-center mt-2 text-sm">
-                      <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 text-xs">{item.platform}</span>
+                      <span>{item.platform}</span>
                       <span className="text-muted-foreground">{t(item.status.toLowerCase().replace(/\s+/g, ""))}</span>
                     </div>
                   </div>
@@ -117,7 +102,6 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="text-center py-10 text-muted-foreground">
-                <Search className="h-12 w-12 mx-auto opacity-20 mb-2" />
                 {t("noResults")}
               </div>
             )}
@@ -127,53 +111,47 @@ export default function Dashboard() {
         {/* Dashboard Stats */}
         {!isSearching && (
           <>
-            <div className="bg-white dark:bg-slate-800/60 p-5 rounded-xl shadow-md backdrop-blur-sm border border-indigo-100 dark:border-indigo-900/30">
+            <div className="glassmorphism p-3 md:p-4 rounded-xl shadow-sm">
               <DashboardStats />
             </div>
             
             {/* Quick Actions */}
-            <div className="space-y-4 bg-white dark:bg-slate-800/60 p-5 rounded-xl shadow-md backdrop-blur-sm border border-indigo-100 dark:border-indigo-900/30">
-              <h2 className="text-xl font-bold text-indigo-800 dark:text-indigo-300">{t("quickActions")}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-3 md:space-y-4 glassmorphism p-3 md:p-4 rounded-xl shadow-sm">
+              <h2 className="text-lg md:text-xl font-elegant">{t("quickActions")}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 <Button 
                   variant="outline" 
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-white to-indigo-50/50 dark:from-slate-800 dark:to-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 hover:shadow-md hover:border-indigo-300"
+                  className="h-auto py-3 md:py-4 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-background to-primary/5 hover:from-background hover:to-primary/10"
                   onClick={() => setIsAddingContent(true)}
                 >
-                  <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
-                    <PlusIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-300" />
-                  </div>
+                  <PlusIcon className="h-5 w-5" />
                   <div className="text-center">
                     <div className="font-medium">{t("addContent")}</div>
-                    <div className="text-xs text-muted-foreground">{t("addIdea")}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">{t("addIdea")}</div>
                   </div>
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-white to-purple-50/50 dark:from-slate-800 dark:to-purple-900/20 border border-purple-200 dark:border-purple-800/50 hover:shadow-md hover:border-purple-300"
+                  className="h-auto py-3 md:py-4 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-background to-secondary/10 hover:from-background hover:to-secondary/20"
                   onClick={() => navigate("/content-board")}
                 >
-                  <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-                    <Compass className="h-6 w-6 text-purple-600 dark:text-purple-300" />
-                  </div>
+                  <Search className="h-5 w-5" />
                   <div className="text-center">
                     <div className="font-medium">{t("contentBoard")}</div>
-                    <div className="text-xs text-muted-foreground">{t("filterByPlatform")}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">{t("filterByPlatform")}</div>
                   </div>
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-white to-fuchsia-50/50 dark:from-slate-800 dark:to-fuchsia-900/20 border border-fuchsia-200 dark:border-fuchsia-800/50 hover:shadow-md hover:border-fuchsia-300"
+                  className="h-auto py-3 md:py-4 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-background to-accent/10 hover:from-background hover:to-accent/20"
                   onClick={() => navigate("/calendar")}
                 >
-                  <div className="w-12 h-12 rounded-full bg-fuchsia-100 dark:bg-fuchsia-900/50 flex items-center justify-center">
-                    <Calendar className="h-6 w-6 text-fuchsia-600 dark:text-fuchsia-300" />
-                  </div>
+                  <Search className="h-5 w-5" />
                   <div className="text-center">
                     <div className="font-medium">{t("calendar")}</div>
-                    <div className="text-xs text-muted-foreground">{t("publicationDate")}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">{t("publicationDate")}</div>
                   </div>
                 </Button>
               </div>
@@ -185,9 +163,9 @@ export default function Dashboard() {
       {/* Add Content Dialog */}
       {isAddingContent && (
         <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
-          <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-indigo-100 dark:border-indigo-800/50">
+          <DialogContent className="sm:max-w-[600px] md:max-w-[800px] max-h-[90vh] overflow-y-auto glassmorphism">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-indigo-800 dark:text-indigo-300">{t("addContent")}</DialogTitle>
+              <DialogTitle className="font-elegant text-2xl">{t("addContent")}</DialogTitle>
               <DialogDescription>{t("addContentDescription")}</DialogDescription>
             </DialogHeader>
             <ContentForm 

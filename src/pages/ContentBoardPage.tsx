@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ContentBoard } from "@/components/ContentBoard";
 import { Header } from "@/components/Header";
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ContentItem, Platform } from "@/types/content";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 
 export default function ContentBoardPage() {
   const { contentItems } = useContent();
@@ -77,59 +76,46 @@ export default function ContentBoardPage() {
   }, [isMobile]);
   
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-secondary/20">
       <Header onSearch={handleSearch} />
       
       <main className="flex-1 container py-4 md:py-6 space-y-4 md:space-y-6 px-3 md:px-4">
-        <div className="relative overflow-hidden rounded-xl mb-6">
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-purple-600 opacity-90"></div>
-          <div className="relative z-10 p-6 md:p-8 text-white">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">{t("contentBoard")}</h1>
-            <p className="text-violet-100 max-w-2xl">Visualize and organize your content pipeline across all platforms.</p>
-            
-            <div className="flex flex-col xs:flex-row items-center gap-4 mt-6 w-full sm:w-auto max-w-2xl">
-              <div className="relative w-full xs:w-64">
-                <Input
-                  id="content-search"
-                  type="search"
-                  placeholder={t("search")}
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-9 rounded-lg w-full border-white/30 bg-white/20 text-white placeholder:text-white/70 focus-visible:ring-white/50"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/70" />
-              </div>
-              
-              <Select 
-                value={platformFilter} 
-                onValueChange={(value) => handlePlatformFilterChange(value as Platform | "All")}
-              >
-                <SelectTrigger className="w-full xs:w-48 rounded-lg border-white/30 bg-white/20 text-white focus:ring-white/50">
-                  <div className="flex items-center">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder={t("filterByPlatform")} />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-violet-200 dark:border-violet-800/30 rounded-lg">
-                  {platforms.map((platform) => (
-                    <SelectItem key={platform} value={platform}>
-                      {platform === "All" ? t("all") : platform}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glassmorphism p-3 md:p-4 rounded-xl shadow-sm">
+          <h1 className="text-xl md:text-2xl font-medium">{t("contentBoard")}</h1>
           
-          {/* Decorative elements */}
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -mb-32 -mr-32"></div>
-          <div className="absolute top-0 right-20 w-20 h-20 bg-purple-300 opacity-20 rounded-full -mt-10"></div>
+          <div className="flex flex-col xs:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
+              <Input
+                id="content-search"
+                type="search"
+                placeholder={t("search")}
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-9 rounded-xl w-full sm:w-[220px] text-sm"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+            
+            <Select 
+              value={platformFilter} 
+              onValueChange={(value) => handlePlatformFilterChange(value as Platform | "All")}
+            >
+              <SelectTrigger className="w-full sm:w-[180px] rounded-xl text-sm">
+                <SelectValue placeholder={t("filterByPlatform")} />
+              </SelectTrigger>
+              <SelectContent className="glassmorphism rounded-xl">
+                {platforms.map((platform) => (
+                  <SelectItem key={platform} value={platform}>
+                    {platform === "All" ? t("all") : platform}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Main Content Board */}
-        <div className="bg-white dark:bg-slate-800/60 p-5 rounded-xl shadow-md backdrop-blur-sm border border-indigo-100 dark:border-indigo-900/30">
-          <ContentBoard />
-        </div>
+        <ContentBoard />
       </main>
     </div>
   );

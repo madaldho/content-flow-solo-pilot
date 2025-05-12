@@ -1,189 +1,205 @@
 
 import { v4 as uuidv4 } from 'uuid';
-import { SweetSpotEntry, SweetSpotAnalysis } from '@/types/sweetSpot';
+import { SweetSpotEntry, NicheStats, SweetSpotAnalysis } from '@/types/sweetSpot';
+
+// Sample data for reference
+const exampleData: SweetSpotEntry[] = [
+  { id: uuidv4(), niche: "KEY NICHE", account: "elaak", keywords: "Traveling", audience: 534000, revenueStream: "Endorsement", pricing: "Rp1,000,000" },
+  { id: uuidv4(), niche: "KEY NICHE", account: "Adi Putra", keywords: "Traveling", audience: 117000, revenueStream: "Course", pricing: "Rp250,000" },
+  { id: uuidv4(), niche: "KEY NICHE", account: "Anjar", keywords: "Traveling", audience: 15900, revenueStream: "Webinar", pricing: "Rp300,000" },
+  { id: uuidv4(), niche: "KEY NICHE", account: "Sejauh Angin", keywords: "Traveling Information", audience: 65100, revenueStream: "Endorsement", pricing: "Rp1,000,000" },
+  { id: uuidv4(), niche: "KEY NICHE", account: "Furky Syahroni", keywords: "Traveling", audience: 134000, revenueStream: "Endorsement", pricing: "Rp1,000,000" },
+  { id: uuidv4(), niche: "BENANG MERAH NICHE", account: "Borneo Bodyfit", keywords: "Fitness", audience: 12300, revenueStream: "Endorsement", pricing: "Rp1,000,000" },
+  { id: uuidv4(), niche: "BENANG MERAH NICHE", account: "Brodibalo", keywords: "Fitness", audience: 274000, revenueStream: "Course", pricing: "Rp250,000" },
+  { id: uuidv4(), niche: "BENANG MERAH NICHE", account: "Christian Dicky", keywords: "Fitness", audience: 76400, revenueStream: "Webinar", pricing: "Rp300,000" },
+];
 
 class SweetSpotService {
-  private storageKey = 'sweetspot-data';
-  private assumptionsKey = 'sweetspot-assumptions';
-  private targetRevenueKey = 'sweetspot-target-revenue';
+  private storageKey = 'sweetspot_data';
+  private settingsKey = 'sweetspot_settings';
   
-  // Get entries from localStorage
-  getEntries(): SweetSpotEntry[] {
-    const data = localStorage.getItem(this.storageKey);
-    return data ? JSON.parse(data) : [];
+  // Default settings
+  private defaultSettings = {
+    targetRevenuePerMonth: 10000000, // Default target revenue (10 million Rp)
+  };
+  
+  // Initial data is empty - user will add their own data
+  getData(): SweetSpotEntry[] {
+    try {
+      const storedData = localStorage.getItem(this.storageKey);
+      if (storedData) {
+        return JSON.parse(storedData);
+      } else {
+        // First time use - return empty array
+        this.saveData([]);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error loading sweet spot data:", error);
+      return [];
+    }
   }
-
-  // Save an entry
-  saveEntry(entry: Omit<SweetSpotEntry, 'id' | 'createdAt' | 'updatedAt'>): SweetSpotEntry {
-    const entries = this.getEntries();
-    const newEntry: SweetSpotEntry = {
-      id: uuidv4(),
-      ...entry,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    entries.push(newEntry);
-    localStorage.setItem(this.storageKey, JSON.stringify(entries));
+  
+  // Get example/reference data
+  getExampleData(): SweetSpotEntry[] {
+    return exampleData;
+  }
+  
+  // Save data to localStorage
+  saveData(data: SweetSpotEntry[]): void {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(data));
+    } catch (error) {
+      console.error("Error saving sweet spot data:", error);
+    }
+  }
+  
+  // Get settings
+  getSettings() {
+    try {
+      const settings = localStorage.getItem(this.settingsKey);
+      if (settings) {
+        return JSON.parse(settings);
+      } else {
+        this.saveSettings(this.defaultSettings);
+        return this.defaultSettings;
+      }
+    } catch (error) {
+      console.error("Error loading sweet spot settings:", error);
+      return this.defaultSettings;
+    }
+  }
+  
+  // Save settings
+  saveSettings(settings: any): void {
+    try {
+      localStorage.setItem(this.settingsKey, JSON.stringify(settings));
+    } catch (error) {
+      console.error("Error saving sweet spot settings:", error);
+    }
+  }
+  
+  // Update target revenue
+  updateTargetRevenue(amount: number): void {
+    const settings = this.getSettings();
+    settings.targetRevenuePerMonth = amount;
+    this.saveSettings(settings);
+  }
+  
+  // Create a new entry
+  createEntry(entry: Omit<SweetSpotEntry, 'id'>): SweetSpotEntry {
+    const newEntry = { ...entry, id: uuidv4() };
+    const data = this.getData();
+    this.saveData([...data, newEntry]);
     return newEntry;
   }
-
+  
+  // Get an entry by ID
+  getEntry(id: string): SweetSpotEntry | undefined {
+    return this.getData().find(entry => entry.id === id);
+  }
+  
   // Update an entry
   updateEntry(id: string, updates: Partial<SweetSpotEntry>): SweetSpotEntry | null {
-    const entries = this.getEntries();
-    const index = entries.findIndex(entry => entry.id === id);
+    const data = this.getData();
+    const index = data.findIndex(entry => entry.id === id);
     
-    if (index === -1) {
-      return null;
-    }
+    if (index === -1) return null;
     
-    const updatedEntry = {
-      ...entries[index],
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    
-    entries[index] = updatedEntry;
-    localStorage.setItem(this.storageKey, JSON.stringify(entries));
+    const updatedEntry = { ...data[index], ...updates };
+    data[index] = updatedEntry;
+    this.saveData(data);
     return updatedEntry;
   }
-
+  
   // Delete an entry
   deleteEntry(id: string): boolean {
-    const entries = this.getEntries();
-    const filteredEntries = entries.filter(entry => entry.id !== id);
+    const data = this.getData();
+    const filteredData = data.filter(entry => entry.id !== id);
     
-    if (filteredEntries.length === entries.length) {
-      return false;
-    }
+    if (filteredData.length === data.length) return false;
     
-    localStorage.setItem(this.storageKey, JSON.stringify(filteredEntries));
+    this.saveData(filteredData);
     return true;
   }
-
-  // Get all niches
-  getNiches(): string[] {
-    const entries = this.getEntries();
-    return [...new Set(entries.map(entry => entry.niche))];
-  }
-
-  // Group entries by niche
-  getEntriesByNiche(): Record<string, SweetSpotEntry[]> {
-    const entries = this.getEntries();
-    return entries.reduce((acc, entry) => {
-      if (!acc[entry.niche]) {
-        acc[entry.niche] = [];
-      }
-      acc[entry.niche].push(entry);
-      return acc;
-    }, {} as Record<string, SweetSpotEntry[]>);
-  }
-
-  // Calculate sweet spot analysis
-  calculateAnalysis(): SweetSpotAnalysis {
-    const entries = this.getEntries();
-    const niches = this.getNiches();
+  
+  // Calculate analysis based on current data
+  calculateAnalysis(data: SweetSpotEntry[]): SweetSpotAnalysis {
+    // Get current settings
+    const settings = this.getSettings();
+    const targetRevenuePerMonth = settings.targetRevenuePerMonth || this.defaultSettings.targetRevenuePerMonth;
     
-    // Grand Total (all audience)
-    const grandTotal = entries.reduce((sum, entry) => sum + entry.audience, 0);
+    if (!data || data.length === 0) {
+      return {
+        niches: [],
+        grandTotal: 0,
+        conversion: 0,
+        salesPerMonth: 0,
+        revenuePerMonth: this.formatCurrency(targetRevenuePerMonth),
+        productPrice: this.formatCurrency(targetRevenuePerMonth), // Default when no sales
+      };
+    }
     
-    // Apply 1% conversion rate for total conversion
-    const conversion = Math.round(grandTotal * 0.01);
+    const nicheMap = new Map<string, SweetSpotEntry[]>();
     
-    // Estimate sales per month (4% of conversion)
-    const salesPerMonth = Math.round(conversion * 0.04);
-    
-    // Get target revenue or calculate default
-    const targetRevenue = this.getTargetRevenue() || 50000000;
-    
-    // Calculate product price based on revenue and sales
-    const productPrice = salesPerMonth > 0 
-      ? Math.round(targetRevenue / salesPerMonth) 
-      : 0;
-      
-    // Format as IDR currency
-    const formatter = new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
+    // Group entries by niche
+    data.forEach(entry => {
+      const entries = nicheMap.get(entry.niche) || [];
+      entries.push(entry);
+      nicheMap.set(entry.niche, entries);
     });
     
+    // Calculate stats for each niche
+    const niches: NicheStats[] = [];
+    let grandTotal = 0;
+    
+    nicheMap.forEach((entries, niche) => {
+      const total = entries.reduce((sum, entry) => sum + entry.audience, 0);
+      const assumptionPercentage = niche === "KEY NICHE" ? 10 : 5;
+      const assumptionAudience = Math.round(total * (assumptionPercentage / 100));
+      
+      niches.push({
+        niche,
+        total,
+        assumptionPercentage,
+        assumptionAudience,
+        entries,
+      });
+      
+      grandTotal += assumptionAudience;
+    });
+    
+    // Calculate final stats
+    const conversion = Math.round(grandTotal * 0.01);
+    const salesPerMonth = Math.round(conversion / 24);
+    
+    // Calculate product price based on target monthly revenue and sales per month
+    let productPrice = 0;
+    if (salesPerMonth > 0) {
+      productPrice = Math.round(targetRevenuePerMonth / salesPerMonth);
+    } else {
+      productPrice = targetRevenuePerMonth; // Fallback if no sales
+    }
+    
     return {
+      niches,
       grandTotal,
       conversion,
       salesPerMonth,
-      revenuePerMonth: formatter.format(targetRevenue),
-      productPrice: formatter.format(productPrice)
+      revenuePerMonth: this.formatCurrency(targetRevenuePerMonth),
+      productPrice: this.formatCurrency(productPrice),
     };
   }
-
-  // Parse currency string back to number
-  parseCurrency(currencyString: string): number {
-    // Remove currency symbol, dots, and commas
-    const numericString = currencyString
-      .replace(/[^\d,.-]/g, '')
-      .replace(/\./g, '')
-      .replace(/,/g, '.');
-      
-    return parseInt(numericString, 10);
+  
+  // Format currency to Indonesian Rupiah
+  formatCurrency(amount: number): string {
+    return `Rp${amount.toLocaleString('id-ID')}`;
   }
-
-  // Get target revenue
-  getTargetRevenue(): number | null {
-    const revenue = localStorage.getItem(this.targetRevenueKey);
-    return revenue ? parseInt(revenue, 10) : null;
-  }
-
-  // Update target revenue
-  updateTargetRevenue(revenue: number): void {
-    localStorage.setItem(this.targetRevenueKey, revenue.toString());
-  }
-
-  // Load example data
-  loadExampleData(): void {
-    const exampleData: SweetSpotEntry[] = [
-      {
-        id: uuidv4(),
-        account: "TravelWithMe",
-        niche: "Travel",
-        platform: "Instagram",
-        audience: 250000,
-        revenueStream: "Course",
-        pricing: 1500000,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: uuidv4(),
-        account: "FitnessPro",
-        niche: "Fitness",
-        platform: "YouTube",
-        audience: 500000,
-        revenueStream: "Subscription",
-        pricing: 99000,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: uuidv4(),
-        account: "CookWithMe",
-        niche: "Cooking",
-        platform: "TikTok",
-        audience: 1200000,
-        revenueStream: "Endorsement",
-        pricing: 5000000,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
-    
-    localStorage.setItem(this.storageKey, JSON.stringify(exampleData));
-  }
-
-  // Clear all data
-  clearData(): void {
-    localStorage.removeItem(this.storageKey);
-    localStorage.removeItem(this.assumptionsKey);
+  
+  // Parse currency string to number
+  parseCurrency(currencyStr: string): number {
+    // Remove "Rp" and any non-numeric characters except digits
+    return parseInt(currencyStr.replace(/[^0-9]/g, '')) || 0;
   }
 }
 

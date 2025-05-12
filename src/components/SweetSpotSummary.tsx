@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { SweetSpotAnalysis } from "@/types/sweetSpot";
 import { useLanguage } from "@/context/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, BarChart3, ShoppingCart, TrendingUp, CreditCard, Edit, Save, X } from "lucide-react";
+import { Users, BarChart3, ShoppingCart, TrendingUp, CreditCard, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { sweetSpotService } from "@/services/sweetSpotService";
@@ -52,17 +52,15 @@ export function SweetSpotSummary({ analysis, onRefresh }: SweetSpotSummaryProps)
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {/* Grand Total */}
-      <Card className="overflow-hidden border-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/30 to-purple-500/20 rounded-lg -z-10" />
-        <CardHeader className="pb-2 relative">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-500/10 rounded-full -mr-8 -mt-8"></div>
+      <Card className="bg-gradient-to-br from-card to-primary/10 border hover:shadow-md transition-all">
+        <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
-            <Users className="h-5 w-5 text-indigo-500" />
+            <Users className="h-5 w-5 text-primary" />
             {t("grandTotal") || "Grand Total"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">{analysis.grandTotal.toLocaleString()}</p>
+          <p className="text-3xl font-bold">{analysis.grandTotal.toLocaleString()}</p>
           <p className="text-sm text-muted-foreground mt-1">
             {t("totalPotentialAudience") || "Total Potential Audience"}
           </p>
@@ -70,17 +68,15 @@ export function SweetSpotSummary({ analysis, onRefresh }: SweetSpotSummaryProps)
       </Card>
       
       {/* Conversion */}
-      <Card className="overflow-hidden border-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/30 to-indigo-500/20 rounded-lg -z-10" />
-        <CardHeader className="pb-2 relative">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-violet-500/10 rounded-full -mr-8 -mt-8"></div>
+      <Card className="bg-gradient-to-br from-card to-secondary/10 border hover:shadow-md transition-all">
+        <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-violet-500" />
+            <BarChart3 className="h-5 w-5 text-secondary" />
             {t("conversion") || "Conversion (1%)"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-violet-700 dark:text-violet-300">{analysis.conversion.toLocaleString()}</p>
+          <p className="text-3xl font-bold">{analysis.conversion.toLocaleString()}</p>
           <p className="text-sm text-muted-foreground mt-1">
             {t("potentialCustomers") || "Potential Customers"}
           </p>
@@ -88,17 +84,15 @@ export function SweetSpotSummary({ analysis, onRefresh }: SweetSpotSummaryProps)
       </Card>
       
       {/* Sales Per Month */}
-      <Card className="overflow-hidden border-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/30 to-purple-500/20 rounded-lg -z-10" />
-        <CardHeader className="pb-2 relative">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-fuchsia-500/10 rounded-full -mr-8 -mt-8"></div>
+      <Card className="bg-gradient-to-br from-card to-accent/10 border hover:shadow-md transition-all">
+        <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-fuchsia-500" />
+            <ShoppingCart className="h-5 w-5 text-accent" />
             {t("salesPerMonth") || "Monthly Sales"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-fuchsia-700 dark:text-fuchsia-300">{analysis.salesPerMonth}</p>
+          <p className="text-3xl font-bold">{analysis.salesPerMonth}</p>
           <p className="text-sm text-muted-foreground mt-1">
             {t("estimatedMonthlySales") || "Estimated Monthly Sales"}
           </p>
@@ -106,18 +100,16 @@ export function SweetSpotSummary({ analysis, onRefresh }: SweetSpotSummaryProps)
       </Card>
       
       {/* Revenue Per Month - Editable */}
-      <Card className="md:col-span-2 overflow-hidden border-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/30 to-rose-500/20 rounded-lg -z-10" />
-        <CardHeader className="pb-2 relative">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-pink-500/10 rounded-full -mr-10 -mt-10"></div>
+      <Card className="md:col-span-2 lg:col-span-2 bg-gradient-to-br from-card to-primary/10 border hover:shadow-md transition-all">
+        <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-pink-500" />
+            <TrendingUp className="h-5 w-5 text-primary" />
             {t("revenuePerMonth") || "Target Monthly Revenue"}
             {!isEditingRevenue && (
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="ml-auto h-8 w-8 p-0 text-pink-500 hover:text-pink-700 hover:bg-pink-100 dark:hover:bg-pink-900/20" 
+                className="ml-auto h-8 w-8 p-0" 
                 onClick={handleEditRevenue}
               >
                 <Edit className="h-4 w-4" />
@@ -129,34 +121,25 @@ export function SweetSpotSummary({ analysis, onRefresh }: SweetSpotSummaryProps)
         <CardContent>
           {isEditingRevenue ? (
             <div className="space-y-2">
-              <div className="flex items-center">
-                <span className="text-lg font-medium mr-2">Rp</span>
-                <Input
-                  type="number"
-                  value={revenueInput}
-                  onChange={(e) => setRevenueInput(e.target.value)}
-                  placeholder="Enter target revenue"
-                  className="text-lg border-pink-200 focus-visible:ring-pink-400"
-                />
-              </div>
+              <Input
+                type="number"
+                value={revenueInput}
+                onChange={(e) => setRevenueInput(e.target.value)}
+                placeholder="Enter target revenue"
+                className="text-lg"
+              />
               <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={handleSaveRevenue}
-                  className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600"
-                >
-                  <Save className="h-4 w-4 mr-1" />
+                <Button size="sm" onClick={handleSaveRevenue}>
                   {t("save") || "Save"}
                 </Button>
                 <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                  <X className="h-4 w-4 mr-1" />
                   {t("cancel") || "Cancel"}
                 </Button>
               </div>
             </div>
           ) : (
             <>
-              <p className="text-3xl font-bold text-pink-700 dark:text-pink-300">{analysis.revenuePerMonth}</p>
+              <p className="text-3xl font-bold">{analysis.revenuePerMonth}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 {t("targetMonthlyRevenue") || "Target Monthly Revenue"}
               </p>
@@ -166,17 +149,15 @@ export function SweetSpotSummary({ analysis, onRefresh }: SweetSpotSummaryProps)
       </Card>
       
       {/* Product Price - Automatically calculated */}
-      <Card className="overflow-hidden border-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-amber-500/20 rounded-lg -z-10" />
-        <CardHeader className="pb-2 relative">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/10 rounded-full -mr-8 -mt-8"></div>
+      <Card className="bg-gradient-to-br from-card to-secondary/10 border hover:shadow-md transition-all">
+        <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-orange-500" />
+            <CreditCard className="h-5 w-5 text-secondary" />
             {t("productPrice") || "Product Price"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">{analysis.productPrice}</p>
+          <p className="text-3xl font-bold">{analysis.productPrice}</p>
           <p className="text-sm text-muted-foreground mt-1">
             {t("calculatedPrice") || "Calculated from Revenue / Monthly Sales"}
           </p>
