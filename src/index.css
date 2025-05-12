@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 270 95% 65%;
+    --primary: 252 56% 57%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
@@ -23,15 +23,15 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 262 83% 58%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 215 32% 92%;
-    --input: 215 32% 92%;
-    --ring: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 252 56% 57%;
     --radius: 1rem;
 
     --sidebar-background: 224 71.4% 4.1%;
@@ -54,8 +54,8 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 270 95% 65%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 252 56% 57%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -63,7 +63,7 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 262 83% 58%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -71,7 +71,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 252 56% 57%;
 
     --sidebar-background: 224 71.4% 4.1%;
     --sidebar-foreground: 210 20% 98%;
@@ -111,6 +111,29 @@
     max-width: 1440px;
     margin: 0 auto;
   }
+  
+  /* Glass morphism utilities */
+  .glassmorphism {
+    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border shadow-md dark:border-slate-700/50;
+  }
+  
+  /* Modern card with hover effects */
+  .modern-card {
+    @apply bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden;
+  }
+  
+  /* Background gradients */
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-indigo-500 to-purple-600;
+  }
+  
+  .bg-gradient-secondary {
+    @apply bg-gradient-to-r from-violet-500 to-fuchsia-500;
+  }
+  
+  .bg-gradient-accent {
+    @apply bg-gradient-to-r from-pink-500 to-rose-500;
+  }
 }
 
 /* Card styles */
@@ -148,11 +171,6 @@
   flex-direction: column;
 }
 
-/* Glassmorphism effect */
-.glassmorphism {
-  @apply bg-background/80 backdrop-blur-md border shadow-md;
-}
-
 /* Status color classes - defined directly */
 .status-idea {
   background-color: #6366f1;
@@ -161,16 +179,16 @@
   background-color: #8b5cf6;
 }
 .status-recorded {
-  background-color: #ec4899;
+  background-color: #d946ef;
 }
 .status-edited {
-  background-color: #f59e0b;
+  background-color: #ec4899;
 }
 .status-ready {
-  background-color: #10b981;
+  background-color: #f59e0b;
 }
 .status-published {
-  background-color: #6b7280;
+  background-color: #10b981;
 }
 
 /* Card gradient effects */
@@ -191,6 +209,23 @@
 }
 .card-gradient-6 {
   background: linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%);
+}
+
+/* Modern gradients */
+.modern-gradient-1 {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.modern-gradient-2 {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+}
+.modern-gradient-3 {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+.modern-gradient-4 {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+.modern-gradient-5 {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 
 /* Animation utilities */
