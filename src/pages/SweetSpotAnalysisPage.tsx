@@ -125,7 +125,10 @@ export default function SweetSpotAnalysisPage() {
               <span className="inline-block w-1.5 h-6 bg-primary rounded mr-2"></span>
               {t("yourAnalysis") || "Your Analysis"}
             </h2>
-            <SweetSpotSummary analysis={analysis} />
+            <SweetSpotSummary 
+              analysis={analysis} 
+              onRefresh={loadData}
+            />
           </Card>
         )}
         

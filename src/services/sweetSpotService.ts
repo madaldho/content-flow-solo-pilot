@@ -16,6 +16,12 @@ const exampleData: SweetSpotEntry[] = [
 
 class SweetSpotService {
   private storageKey = 'sweetspot_data';
+  private settingsKey = 'sweetspot_settings';
+  
+  // Default settings
+  private defaultSettings = {
+    targetRevenuePerMonth: 10000000, // Default target revenue (10 million Rp)
+  };
   
   // Initial data is empty - user will add their own data
   getData(): SweetSpotEntry[] {
@@ -46,6 +52,38 @@ class SweetSpotService {
     } catch (error) {
       console.error("Error saving sweet spot data:", error);
     }
+  }
+  
+  // Get settings
+  getSettings() {
+    try {
+      const settings = localStorage.getItem(this.settingsKey);
+      if (settings) {
+        return JSON.parse(settings);
+      } else {
+        this.saveSettings(this.defaultSettings);
+        return this.defaultSettings;
+      }
+    } catch (error) {
+      console.error("Error loading sweet spot settings:", error);
+      return this.defaultSettings;
+    }
+  }
+  
+  // Save settings
+  saveSettings(settings: any): void {
+    try {
+      localStorage.setItem(this.settingsKey, JSON.stringify(settings));
+    } catch (error) {
+      console.error("Error saving sweet spot settings:", error);
+    }
+  }
+  
+  // Update target revenue
+  updateTargetRevenue(amount: number): void {
+    const settings = this.getSettings();
+    settings.targetRevenuePerMonth = amount;
+    this.saveSettings(settings);
   }
   
   // Create a new entry
@@ -87,14 +125,18 @@ class SweetSpotService {
   
   // Calculate analysis based on current data
   calculateAnalysis(data: SweetSpotEntry[]): SweetSpotAnalysis {
+    // Get current settings
+    const settings = this.getSettings();
+    const targetRevenuePerMonth = settings.targetRevenuePerMonth || this.defaultSettings.targetRevenuePerMonth;
+    
     if (!data || data.length === 0) {
       return {
         niches: [],
         grandTotal: 0,
         conversion: 0,
         salesPerMonth: 0,
-        revenuePerMonth: "Rp0",
-        productPrice: "Rp173,314",
+        revenuePerMonth: this.formatCurrency(targetRevenuePerMonth),
+        productPrice: this.formatCurrency(targetRevenuePerMonth), // Default when no sales
       };
     }
     
@@ -130,18 +172,34 @@ class SweetSpotService {
     // Calculate final stats
     const conversion = Math.round(grandTotal * 0.01);
     const salesPerMonth = Math.round(conversion / 24);
-    const avgProductPrice = 173314; // Example price in IDR
-    const revenuePerMonth = `Rp${(salesPerMonth * avgProductPrice).toLocaleString('id-ID')}`;
-    const productPrice = `Rp${avgProductPrice.toLocaleString('id-ID')}`;
+    
+    // Calculate product price based on target monthly revenue and sales per month
+    let productPrice = 0;
+    if (salesPerMonth > 0) {
+      productPrice = Math.round(targetRevenuePerMonth / salesPerMonth);
+    } else {
+      productPrice = targetRevenuePerMonth; // Fallback if no sales
+    }
     
     return {
       niches,
       grandTotal,
       conversion,
       salesPerMonth,
-      revenuePerMonth,
-      productPrice,
+      revenuePerMonth: this.formatCurrency(targetRevenuePerMonth),
+      productPrice: this.formatCurrency(productPrice),
     };
+  }
+  
+  // Format currency to Indonesian Rupiah
+  formatCurrency(amount: number): string {
+    return `Rp${amount.toLocaleString('id-ID')}`;
+  }
+  
+  // Parse currency string to number
+  parseCurrency(currencyStr: string): number {
+    // Remove "Rp" and any non-numeric characters except digits
+    return parseInt(currencyStr.replace(/[^0-9]/g, '')) || 0;
   }
 }
 
