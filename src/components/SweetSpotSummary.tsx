@@ -2,6 +2,7 @@
 import { SweetSpotAnalysis } from "@/types/sweetSpot";
 import { useLanguage } from "@/context/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, BarChart3, ShoppingCart, TrendingUp, CreditCard } from "lucide-react";
 
 interface SweetSpotSummaryProps {
   analysis: SweetSpotAnalysis;
@@ -15,7 +16,8 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
       {/* Grand Total */}
       <Card className="bg-gradient-to-br from-card to-primary/5 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
             {t("grandTotal") || "Grand Total"}
           </CardTitle>
         </CardHeader>
@@ -30,7 +32,8 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
       {/* Conversion */}
       <Card className="bg-gradient-to-br from-card to-secondary/5 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-secondary" />
             {t("conversion") || "Conversion (1%)"}
           </CardTitle>
         </CardHeader>
@@ -45,7 +48,8 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
       {/* Sales Per Month */}
       <Card className="bg-gradient-to-br from-card to-accent/5 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-accent" />
             {t("salesPerMonth") || "Monthly Sales"}
           </CardTitle>
         </CardHeader>
@@ -60,7 +64,8 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
       {/* Revenue Per Month */}
       <Card className="md:col-span-2 lg:col-span-2 bg-gradient-to-br from-card to-primary/5 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
             {t("revenuePerMonth") || "Monthly Revenue"}
           </CardTitle>
         </CardHeader>
@@ -75,7 +80,8 @@ export function SweetSpotSummary({ analysis }: SweetSpotSummaryProps) {
       {/* Product Price */}
       <Card className="bg-gradient-to-br from-card to-secondary/5 border hover:shadow-md transition-all">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-secondary" />
             {t("productPrice") || "Product Price"}
           </CardTitle>
         </CardHeader>

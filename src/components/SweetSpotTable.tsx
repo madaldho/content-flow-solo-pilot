@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
 import { Edit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface SweetSpotTableProps {
   entries: SweetSpotEntry[];
@@ -37,6 +38,30 @@ export function SweetSpotTable({ entries, onDelete, onEdit, isExample = false }:
   const calculateNicheTotal = (nicheEntries: SweetSpotEntry[]) => {
     return nicheEntries.reduce((sum, entry) => sum + entry.audience, 0);
   };
+
+  // Get color for niche header
+  const getNicheColor = (niche: string) => {
+    switch (niche) {
+      case "KEY NICHE":
+        return "bg-gradient-to-r from-primary/10 to-primary/5";
+      case "BENANG MERAH NICHE":
+        return "bg-gradient-to-r from-secondary/10 to-secondary/5";
+      default:
+        return "bg-gradient-to-r from-accent/10 to-accent/5";
+    }
+  };
+  
+  if (entries.length === 0) {
+    return (
+      <div className="rounded-md border p-8 text-center bg-card">
+        <p className="text-muted-foreground">
+          {isExample ? 
+            (t("noExampleData") || "No example data available.") :
+            (t("noDataYet") || "No data yet. Add your first entry to get started.")}
+        </p>
+      </div>
+    );
+  }
   
   return (
     <div className="rounded-md border overflow-hidden bg-card">
@@ -58,9 +83,14 @@ export function SweetSpotTable({ entries, onDelete, onEdit, isExample = false }:
             {Object.entries(entriesByNiche).map(([niche, nicheEntries]) => (
               <React.Fragment key={niche}>
                 {/* Niche header */}
-                <TableRow className="bg-primary/5">
-                  <TableCell colSpan={isExample ? 5 : 6} className="font-bold text-lg py-2">
-                    {niche}
+                <TableRow className={`${getNicheColor(niche)} border-b border-t`}>
+                  <TableCell colSpan={isExample ? 5 : 6} className="font-bold text-lg py-3 px-4">
+                    <div className="flex items-center">
+                      <span>{niche}</span>
+                      <Badge variant="outline" className="ml-3 bg-background">
+                        {nicheEntries.length} {nicheEntries.length === 1 ? 'entry' : 'entries'}
+                      </Badge>
+                    </div>
                   </TableCell>
                 </TableRow>
                 
@@ -91,7 +121,7 @@ export function SweetSpotTable({ entries, onDelete, onEdit, isExample = false }:
                             <Button 
                               variant="ghost" 
                               size="icon"
-                              onClick={() => onDelete(entry.id)}
+                              onClick={() => onDelete(entry)}
                               className="text-destructive hover:text-destructive"
                               title={t("delete") || "Delete"}
                             >

@@ -11,6 +11,7 @@ import ContentMetricsPage from "./pages/ContentMetricsPage";
 import ContentDetailPage from "./pages/ContentDetailPage";
 import { Toaster } from "./components/ui/sonner";
 import SweetSpotAnalysisPage from "./pages/SweetSpotAnalysisPage";
+import SweetSpotFormPage from "./pages/SweetSpotFormPage";
 
 function App() {
   return (
@@ -25,6 +26,8 @@ function App() {
           <Route path="/content/metrics/:id" element={<ContentMetricsPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/sweet-spot" element={<SweetSpotAnalysisPage />} />
+          <Route path="/sweet-spot/new" element={<SweetSpotFormPage />} />
+          <Route path="/sweet-spot/edit/:id" element={<SweetSpotFormPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
