@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { History } from "lucide-react";
 import { ContentStatus, HistoryEntry } from "@/types/content";
@@ -20,9 +19,11 @@ export function HistoryTimeline({ history = [] }: HistoryTimelineProps) {
   }
 
   // Sort history entries by timestamp, newest first
-  const sortedHistory = [...history].sort((a, b) => 
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+  const sortedHistory = [...history].sort((a, b) => {
+    const dateA = a.timestamp instanceof Date ? a.timestamp : new Date(a.timestamp);
+    const dateB = b.timestamp instanceof Date ? b.timestamp : new Date(b.timestamp);
+    return dateB.getTime() - dateA.getTime();
+  });
 
   const getStatusColor = (status: ContentStatus): string => {
     const statusColors: Record<ContentStatus, string> = {
@@ -34,6 +35,27 @@ export function HistoryTimeline({ history = [] }: HistoryTimelineProps) {
       "Published": "bg-status-published"
     };
     return statusColors[status] || "bg-gray-300";
+  };
+
+  const formatDate = (date: Date | string) => {
+    try {
+      const dateObj = date instanceof Date ? date : new Date(date);
+      return format(dateObj, "MMM dd, yyyy 'at' h:mm a");
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
+  };
+
+  const getStatusTranslation = (status: ContentStatus | undefined): string => {
+    if (!status) return "";
+    
+    try {
+      return t(status.toLowerCase().replace(/\s+/g, ""));
+    } catch (error) {
+      console.error("Error translating status:", error);
+      return status;
+    }
   };
 
   return (
@@ -54,16 +76,16 @@ export function HistoryTimeline({ history = [] }: HistoryTimelineProps) {
               <p className="text-sm">
                 {entry.previousStatus ? (
                   <span>
-                    {t("movedFrom")} <span className="font-medium">{t(entry.previousStatus.toLowerCase().replace(/\s+/g, ""))}</span> {t("to")} <span className="font-medium">{t(entry.newStatus.toLowerCase().replace(/\s+/g, ""))}</span>
+                    {t("movedFrom")} <span className="font-medium">{getStatusTranslation(entry.previousStatus)}</span> {t("to")} <span className="font-medium">{getStatusTranslation(entry.newStatus)}</span>
                   </span>
                 ) : (
                   <span>
-                    {t("createdAs")} <span className="font-medium">{t(entry.newStatus.toLowerCase().replace(/\s+/g, ""))}</span>
+                    {t("createdAs")} <span className="font-medium">{getStatusTranslation(entry.newStatus)}</span>
                   </span>
                 )}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {format(new Date(entry.timestamp), "MMM dd, yyyy 'at' h:mm a")}
+                {formatDate(entry.timestamp)}
               </p>
             </div>
           </div>

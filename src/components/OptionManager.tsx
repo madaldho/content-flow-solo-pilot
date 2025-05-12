@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -102,17 +101,25 @@ export function OptionManager({ type, title, description }: OptionManagerProps) 
   
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <div>
           <h3 className="text-lg font-medium">{title}</h3>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsAddDialogOpen(true)}>
+        <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsAddDialogOpen(true)} 
+            className="w-full xs:w-auto justify-center"
+          >
             <Plus className="h-4 w-4 mr-2" />
             {t("addNew")}
           </Button>
-          <Button variant="outline" onClick={() => setIsResetDialogOpen(true)}>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsResetDialogOpen(true)} 
+            className="w-full xs:w-auto justify-center"
+          >
             <RotateCcw className="h-4 w-4 mr-2" />
             {t("reset")}
           </Button>
@@ -123,21 +130,21 @@ export function OptionManager({ type, title, description }: OptionManagerProps) 
         {Array.isArray(options) && options.map((option) => (
           <div 
             key={option}
-            className={`flex items-center justify-between p-3 border rounded-lg ${
+            className={`flex items-center justify-between p-2 md:p-3 border rounded-lg ${
               isDefaultOption(option) ? "bg-secondary/20" : "bg-card hover:bg-secondary/10"
             } transition-colors`}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0 overflow-hidden">
               {isDefaultOption(option) && (
-                <div className="w-2 h-2 rounded-full bg-primary"></div>
+                <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0"></div>
               )}
-              <span>{t(option.toLowerCase()) || option}</span>
+              <span className="truncate">{t(option.toLowerCase()) || option}</span>
             </div>
             
             {!isDefaultOption(option) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
                     <MoreVertical className="h-4 w-4" />
                     <span className="sr-only">Open menu</span>
                   </Button>

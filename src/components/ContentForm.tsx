@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import React from "react";
 
 import {
   Form,
@@ -22,16 +23,50 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, Check, ChevronsUpDown, Plus, X } from "lucide-react";
+import { CalendarIcon, Facebook, Instagram, Youtube, Twitter, Linkedin, Globe, PlusCircle, Trash2, Link2 } from "lucide-react";
 import { Platform, ContentTag, ContentItem, ContentStatus } from "@/types/content";
-import { Badge } from "@/components/ui/badge";
 import { Tags } from "lucide-react";
 import { ContentTagSelect } from "./ContentTagSelect";
+import { ContentPlatformSelect } from "./ContentPlatformSelect";
 import { useContent } from "@/context/ContentContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { getPlatformIcon, getPlatformColor, getPlatformBgColor } from "@/lib/platform-utils";
 
-const defaultPlatforms: Platform[] = ["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn", "Blog", "Podcast", "Other"];
+// Fungsi untuk mendapatkan ikon platform yang sesuai dari Lucide React
+const getPlatformLucideIcon = (platform: string) => {
+  switch (platform.toLowerCase()) {
+    case 'youtube':
+      return <Youtube className="h-5 w-5" />;
+    case 'instagram':
+      return <Instagram className="h-5 w-5" />;
+    case 'facebook':
+      return <Facebook className="h-5 w-5" />;
+    case 'twitter':
+      return <Twitter className="h-5 w-5" />;
+    case 'linkedin':
+      return <Linkedin className="h-5 w-5" />;
+    default:
+      return <Globe className="h-5 w-5" />;
+  }
+};
+
+// Fungsi format rupiah
+const formatRupiah = (angka: string | number) => {
+  // Jika null atau tidak terdefinisi, kembalikan string kosong
+  if (!angka) return "";
+  
+  // Konversi ke string dan hapus karakter selain angka
+  const value = angka.toString().replace(/\D/g, "");
+  // Format dengan pemisah ribuan
+  return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+// Fungsi untuk mengambil angka dari format rupiah
+const parseRupiah = (rupiahString: string) => {
+  // Hapus semua non-digit
+  return rupiahString.replace(/\D/g, "");
+};
+
 const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
 
 const formSchema = z.object({
@@ -45,6 +80,13 @@ const formSchema = z.object({
   publicationDate: z.date().optional(),
   notes: z.string().optional(),
   referenceLink: z.string().optional(),
+  contentLink: z.string().optional(),
+  platformLinks: z.record(z.string().optional()).optional(),
+  isEndorsement: z.boolean().default(false),
+  isCollaboration: z.boolean().default(false),
+  endorsementName: z.string().optional(),
+  collaborationName: z.string().optional(),
+  endorsementPrice: z.string().optional(),
   script: z.string().optional(),
   scriptFile: z.string().optional(),
   productionNotes: z.string().optional(),
@@ -68,19 +110,18 @@ interface ContentFormProps {
 
 export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps) {
   const { addContentItem, updateContentItem } = useContent();
-  const { platforms = [], tags = [] } = useContent();
   const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<ContentTag[]>(
     initialData?.tags || []
   );
   const [tagsOpen, setTagsOpen] = useState(false);
   const [platformsOpen, setPlatformsOpen] = useState(false);
-  
-  // Make sure we have a valid array of platforms to work with
-  const availablePlatforms: Platform[] = Array.isArray(platforms) && platforms.length > 0 
-    ? platforms 
-    : defaultPlatforms;
-    
+  const [isEndorsement, setIsEndorsement] = useState(initialData?.isEndorsement || false);
+  const [isCollaboration, setIsCollaboration] = useState(initialData?.isCollaboration || false);
+  const [platformLinks, setPlatformLinks] = useState<Record<string, string>>(
+    initialData?.platformLinks || {}
+  );
+      
   // Ensure initial platforms is always an array
   const initialPlatforms = initialData?.platforms 
     ? Array.isArray(initialData.platforms) && initialData.platforms.length > 0
@@ -101,6 +142,13 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       publicationDate: initialData?.publicationDate,
       notes: initialData?.notes || "",
       referenceLink: initialData?.referenceLink || "",
+      contentLink: initialData?.contentLink || "",
+      platformLinks: initialData?.platformLinks || {},
+      isEndorsement: initialData?.isEndorsement || false,
+      isCollaboration: initialData?.isCollaboration || false,
+      endorsementName: initialData?.endorsementName || "",
+      collaborationName: initialData?.collaborationName || "",
+      endorsementPrice: initialData?.endorsementPrice || "",
       script: initialData?.script || "",
       scriptFile: initialData?.scriptFile || "",
       productionNotes: initialData?.productionNotes || "",
@@ -114,6 +162,33 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       },
     },
   });
+
+  // Watch untuk platform links
+  const watchPlatforms = form.watch("platforms");
+  
+  // Perbarui platform links ketika platforms berubah
+  React.useEffect(() => {
+    if (Array.isArray(watchPlatforms)) {
+      const updatedLinks = { ...platformLinks };
+      
+      // Hapus platform yang sudah tidak ada
+      Object.keys(updatedLinks).forEach(platform => {
+        if (!watchPlatforms.includes(platform)) {
+          delete updatedLinks[platform];
+        }
+      });
+      
+      // Tambahkan platform baru jika belum ada
+      watchPlatforms.forEach(platform => {
+        if (!updatedLinks[platform]) {
+          updatedLinks[platform] = '';
+        }
+      });
+      
+      setPlatformLinks(updatedLinks);
+      form.setValue("platformLinks", updatedLinks);
+    }
+  }, [watchPlatforms]);
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -139,6 +214,15 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
       const platformsValue = Array.isArray(values.platforms) ? values.platforms : selectedPlatforms;
       const firstPlatform = platformsValue.length > 0 ? platformsValue[0] : "";
 
+      // Gunakan contentLink dari platformLinks jika tersedia
+      let mainContentLink = values.contentLink || '';
+      if (values.platformLinks && Object.keys(values.platformLinks).length > 0) {
+        // Ambil link dari platform pertama jika tersedia
+        if (firstPlatform && values.platformLinks[firstPlatform]) {
+          mainContentLink = values.platformLinks[firstPlatform];
+        }
+      }
+
       const contentData: Omit<ContentItem, "id" | "createdAt" | "updatedAt"> = {
         title: values.title,
         platform: firstPlatform,
@@ -148,6 +232,13 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
         publicationDate: values.publicationDate,
         notes: values.notes,
         referenceLink: values.referenceLink,
+        contentLink: mainContentLink,
+        platformLinks: values.platformLinks,
+        isEndorsement: values.isEndorsement,
+        isCollaboration: values.isCollaboration,
+        endorsementName: values.endorsementName,
+        collaborationName: values.collaborationName,
+        endorsementPrice: values.endorsementPrice,
         script: values.script,
         scriptFile: values.scriptFile,
         contentChecklist,
@@ -186,31 +277,31 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
     }
   }
 
-  // Function to handle platform selection
-  const handlePlatformSelection = (platform: Platform) => {
-    const newSelectedPlatforms = [...selectedPlatforms];
-    
-    if (newSelectedPlatforms.includes(platform)) {
-      // Remove the platform if already selected
-      const updatedPlatforms = newSelectedPlatforms.filter(p => p !== platform);
-      setSelectedPlatforms(updatedPlatforms);
-      form.setValue("platforms", updatedPlatforms);
-    } else {
-      // Add the platform if not already selected
-      const updatedPlatforms = [...newSelectedPlatforms, platform];
-      setSelectedPlatforms(updatedPlatforms);
-      form.setValue("platforms", updatedPlatforms);
-    }
-    
-    // Validate after setting value
-    form.trigger("platforms");
+  // Watch isEndorsement and isCollaboration values for conditional rendering
+  const watchIsEndorsement = form.watch("isEndorsement");
+  const watchIsCollaboration = form.watch("isCollaboration");
+
+  // Update local state when the form values change
+  React.useEffect(() => {
+    setIsEndorsement(watchIsEndorsement);
+    setIsCollaboration(watchIsCollaboration);
+  }, [watchIsEndorsement, watchIsCollaboration]);
+
+  // Handle adding/updating platform links
+  const updatePlatformLink = (platform: string, link: string) => {
+    const updatedLinks = {
+      ...platformLinks,
+      [platform]: link
+    };
+    setPlatformLinks(updatedLinks);
+    form.setValue("platformLinks", updatedLinks);
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         {/* Header section */}
-        <div className="bg-muted/30 p-4 rounded-lg border border-muted">
+        <div className=" p-4 rounded-lg border border-muted">
           <h3 className="font-medium mb-4 text-primary">{t("basicInfo")}</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
@@ -233,64 +324,16 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>{t("platforms")} <span className="text-destructive">*</span></FormLabel>
-                  <Popover open={platformsOpen} onOpenChange={setPlatformsOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          role="combobox"
-                          aria-expanded={platformsOpen}
-                          className={cn(
-                            "w-full justify-between rounded-lg",
-                            selectedPlatforms.length === 0 ? "text-muted-foreground" : ""
-                          )}
-                        >
-                          {selectedPlatforms.length > 0
-                            ? `${selectedPlatforms.length} ${t(selectedPlatforms.length > 1 ? "platforms" : "platform")} ${t("selected")}`
-                            : t("selectPlatforms")}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0 rounded-lg shadow-lg">
-                      <Command>
-                        <CommandInput placeholder={t("searchPlatforms")} />
-                        <CommandEmpty>{t("noPlatformFound")}</CommandEmpty>
-                        <CommandGroup className="max-h-64 overflow-auto">
-                          {availablePlatforms.map((platform) => (
-                            <CommandItem
-                              key={platform}
-                              value={platform}
-                              onSelect={() => handlePlatformSelection(platform)}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  selectedPlatforms.includes(platform) ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {platform}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {selectedPlatforms.map((platform) => (
-                      <Badge 
-                        key={platform} 
-                        variant="secondary" 
-                        className="flex items-center gap-1 rounded-md"
-                      >
-                        {platform}
-                        <X 
-                          className="h-3 w-3 cursor-pointer" 
-                          onClick={() => handlePlatformSelection(platform)} 
-                        />
-                      </Badge>
-                    ))}
-                  </div>
+                  <ContentPlatformSelect
+                    open={platformsOpen}
+                    onOpenChange={setPlatformsOpen}
+                    value={selectedPlatforms}
+                    onValueChange={(platforms) => {
+                      setSelectedPlatforms(platforms);
+                      form.setValue("platforms", platforms);
+                      form.trigger("platforms");
+                    }}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -410,6 +453,44 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
               )}
             />
   
+            {/* Multi Platform Links */}
+            <div>
+              <FormLabel>{t("contentLink") || "Link Konten"}</FormLabel>
+              <FormDescription className="text-xs mb-2">
+                {t("contentLinkDescription") || "Masukkan link untuk setiap platform"}
+              </FormDescription>
+              
+              {selectedPlatforms.length === 0 ? (
+                <div className="text-sm text-muted-foreground mt-2">
+                  Pilih platform terlebih dahulu
+                </div>
+              ) : (
+                <div className="space-y-2 mt-2">
+                  {selectedPlatforms.map((platform, index) => (
+                    <div key={platform} className="flex items-center gap-2">
+                      <div 
+                        className="flex items-center justify-center w-10 h-10 rounded-l-md"
+                        style={{
+                          backgroundColor: getPlatformBgColor(platform),
+                          color: getPlatformColor(platform)
+                        }}
+                      >
+                        {getPlatformLucideIcon(platform)}
+                      </div>
+                      <Input
+                        placeholder={`${platform} link`}
+                        className="rounded-l-none"
+                        value={platformLinks[platform] || ''}
+                        onChange={(e) => updatePlatformLink(platform, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <FormField
               control={form.control}
               name="scriptFile"
@@ -442,6 +523,150 @@ export function ContentForm({ initialData, onClose, onSubmit }: ContentFormProps
               </FormItem>
             )}
           />
+
+          {/* Endorsement and Collaboration */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <FormField
+                control={form.control}
+                name="isEndorsement"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>{t("isEndorsement") || "Konten Endorsement"}</FormLabel>
+                      <FormDescription className="text-xs">
+                        {t("isEndorsementDescription") || "Apakah konten ini disponsori/endorse?"}
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <div className="flex items-center space-x-2">
+                        <Label htmlFor="isEndorsement">{field.value ? t("yes") : t("no")}</Label>
+                        <input
+                          type="checkbox"
+                          id="isEndorsement"
+                          checked={field.value}
+                          onChange={(e) => {
+                            field.onChange(e.target.checked);
+                            if (!e.target.checked) {
+                              form.setValue("endorsementName", "");
+                              form.setValue("endorsementPrice", "");
+                            }
+                          }}
+                          className="accent-primary w-5 h-5 rounded-lg"
+                          aria-label={t("isEndorsement") || "Konten Endorsement"}
+                          title={t("isEndorsement") || "Konten Endorsement"}
+                        />
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              {watchIsEndorsement && (
+                <div className="space-y-3 mt-3 p-3 rounded-lg border">
+                  <FormField
+                    control={form.control}
+                    name="endorsementName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("endorsementName") || "Nama Brand/Sponsor"}</FormLabel>
+                        <FormControl>
+                          <Input placeholder={t("endorsementName") || "Masukkan nama brand/sponsor"} {...field} className="rounded-lg" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="endorsementPrice"
+                    render={({ field: { onChange, value, ...rest } }) => (
+                      <FormItem>
+                        <FormLabel>{t("endorsementPrice") || "Harga Endorsement"}</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                              <span className="text-gray-500">Rp</span>
+                            </div>
+                            <Input 
+                              placeholder="1.000.000" 
+                              className="rounded-lg pl-12"
+                              value={formatRupiah(value || "")}
+                              onChange={(e) => {
+                                // Simpan nilai numerik ke dalam form
+                                const numericValue = parseRupiah(e.target.value);
+                                onChange(numericValue);
+                              }}
+                              {...rest}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormDescription className="text-xs">
+                          {t("endorsementPriceDescription") || "Masukkan harga endorsement (opsional)"}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+            </div>
+            
+            <div>
+              <FormField
+                control={form.control}
+                name="isCollaboration"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>{t("isCollaboration") || "Kolaborasi"}</FormLabel>
+                      <FormDescription className="text-xs">
+                        {t("isCollaborationDescription") || "Apakah konten ini merupakan kolaborasi dengan kreator lain?"}
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <div className="flex items-center space-x-2">
+                        <Label htmlFor="isCollaboration">{field.value ? t("yes") : t("no")}</Label>
+                        <input
+                          type="checkbox"
+                          id="isCollaboration"
+                          checked={field.value}
+                          onChange={(e) => {
+                            field.onChange(e.target.checked);
+                            if (!e.target.checked) {
+                              form.setValue("collaborationName", "");
+                            }
+                          }}
+                          className="accent-primary w-5 h-5 rounded-lg"
+                          aria-label={t("isCollaboration") || "Konten Kolaborasi"}
+                          title={t("isCollaboration") || "Konten Kolaborasi"}
+                        />
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              {watchIsCollaboration && (
+                <div className="mt-3 p-3 rounded-lg border">
+                  <FormField
+                    control={form.control}
+                    name="collaborationName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("collaborationName") || "Nama Kolaborator"}</FormLabel>
+                        <FormControl>
+                          <Input placeholder={t("collaborationName") || "Masukkan nama kreator/kolaborator"} {...field} className="rounded-lg" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Production section */}

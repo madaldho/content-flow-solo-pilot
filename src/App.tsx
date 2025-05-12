@@ -1,4 +1,3 @@
-
 import { Route, Routes } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import ContentBoardPage from "./pages/ContentBoardPage";
@@ -7,6 +6,8 @@ import NotFound from "./pages/NotFound";
 import { CombinedContextWrapper } from "./context/CombinedContextWrapper";
 import SettingsPage from "./pages/SettingsPage";
 import ContentFormPage from "./pages/ContentFormPage";
+import ContentMetricsPage from "./pages/ContentMetricsPage";
+import ContentDetailPage from "./pages/ContentDetailPage";
 import { Toaster } from "./components/ui/sonner";
 
 function App() {
@@ -18,6 +19,8 @@ function App() {
           <Route path="/content-board" element={<ContentBoardPage />} />
           <Route path="/content/new" element={<ContentFormPage />} />
           <Route path="/content/edit/:id" element={<ContentFormPage />} />
+          <Route path="/content/detail/:id" element={<ContentDetailPage />} />
+          <Route path="/content/metrics/:id" element={<ContentMetricsPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />

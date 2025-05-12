@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useContent } from "@/context/ContentContext";
@@ -9,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PlusIcon, ChevronDown, ChevronUp } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { HistoryTimeline } from "@/components/HistoryTimeline";
+import { ContentActionMenu } from "@/components/ContentActionMenu";
+import { getPlatformIcon, getPlatformColor, getPlatformBgColor, getPlatformTextColor } from "@/lib/platform-utils";
 
 interface ContentBoardColumnProps {
   status: ContentStatus;
@@ -19,6 +22,10 @@ interface ContentBoardColumnProps {
   onDrop: (e: React.DragEvent<HTMLDivElement>, status: ContentStatus) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, item: ContentItem) => void;
   isDraggingOver: boolean;
+  onDeleteItem: (id: string) => void;
+  onMoveItem: (id: string, newStatus: ContentStatus) => void;
+  onViewHistory: (item: ContentItem) => void;
+  hasHistoryFn: (item: ContentItem) => boolean;
 }
 
 function ContentBoardColumn({ 
@@ -29,7 +36,11 @@ function ContentBoardColumn({
   onDragOver, 
   onDrop, 
   onDragStart,
-  isDraggingOver
+  isDraggingOver,
+  onDeleteItem,
+  onMoveItem,
+  onViewHistory,
+  hasHistoryFn
 }: ContentBoardColumnProps) {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
@@ -121,9 +132,56 @@ function ContentBoardColumn({
                     <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-primary rounded-full mr-2">
                       {itemIndex + 1}
                     </span>
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-muted/70">
+                    <div className="flex items-center gap-1">
+                      {Array.isArray(item.platforms) && item.platforms.length > 0 ? (
+                        <div className="flex gap-1 text-xs font-medium">
+                          <span 
+                            className="px-2 py-1 rounded-full flex items-center gap-1"
+                            style={{
+                              backgroundColor: getPlatformBgColor(item.platforms[0]),
+                              color: getPlatformColor(item.platforms[0]),
+                              border: `1px solid ${getPlatformColor(item.platforms[0])}30`
+                            }}
+                          >
+                            <span className="text-sm">{getPlatformIcon(item.platforms[0])}</span>
+                            {item.platforms[0]}
+                          </span>
+                          {item.platforms.length > 1 && (
+                            <span 
+                              className="w-6 h-6 flex items-center justify-center rounded-full" 
+                              title={item.platforms.slice(1).join(", ")}
+                              style={{
+                                backgroundColor: "#71809620",
+                                color: "#718096"
+                              }}
+                            >
+                              +{item.platforms.length - 1}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span 
+                          className="text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1"
+                          style={{
+                            backgroundColor: getPlatformBgColor(item.platform),
+                            color: getPlatformColor(item.platform),
+                            border: `1px solid ${getPlatformColor(item.platform)}30`
+                          }}
+                        >
+                          <span className="text-sm">{getPlatformIcon(item.platform)}</span>
                       {item.platform}
                     </span>
+                      )}
+                      <ContentActionMenu 
+                        onEdit={() => handleEditContent(item.id)}
+                        onDelete={() => onDeleteItem(item.id)}
+                        onMove={(newStatus) => onMoveItem(item.id, newStatus)}
+                        onViewHistory={hasHistoryFn(item) ? () => onViewHistory(item) : undefined}
+                        hasHistory={hasHistoryFn(item)}
+                        currentStatus={item.status}
+                        className="h-6 w-6"
+                      />
+                    </div>
                   </div>
                   <h4 className="font-medium line-clamp-2 mt-1">{item.title}</h4>
                   {item.tags && item.tags.length > 0 && (
@@ -156,17 +214,25 @@ function ContentBoardColumn({
 
 export function ContentBoard() {
   const navigate = useNavigate();
-  const { getContentByStatus, updateContentItem } = useContent();
+  const { getContentByStatus, updateContentItem, deleteContentItem } = useContent();
   const [dragError, setDragError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [draggingOverStatus, setDraggingOverStatus] = useState<ContentStatus | null>(null);
   const { t } = useLanguage();
   const isMobile = useIsMobile();
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
 
   // Status columns for the board
   const statuses: ContentStatus[] = ["Idea", "Script", "Recorded", "Edited", "Ready to Publish", "Published"];
   
+  // Fungsi untuk menampilkan preview, bukan langsung ke edit
   const handleItemClick = (id: string) => {
+    navigate(`/content/detail/${id}`);
+  };
+
+  // Fungsi untuk mengedit konten (digunakan di action menu)
+  const handleEditContent = (id: string) => {
     navigate(`/content/edit/${id}`);
   };
 
@@ -290,6 +356,63 @@ export function ContentBoard() {
     }, 0);
   };
 
+  // Function to check if an item has history entries
+  const hasHistory = (item: ContentItem) => {
+    try {
+      console.log("Checking history for item:", item.id, "History:", item.history);
+      return Boolean(item.history && Array.isArray(item.history) && item.history.length > 0);
+    } catch (error) {
+      console.error("Error checking history:", error);
+      return false;
+    }
+  };
+
+  // Handle moving content item to another status
+  const handleMoveContent = async (itemId: string, newStatus: ContentStatus) => {
+    try {
+      const itemEl = document.getElementById(`wrapper-${itemId}`);
+      if (itemEl) {
+        itemEl.classList.add('updating');
+      }
+      
+      await updateContentItem(itemId, { status: newStatus });
+      
+      if (itemEl) {
+        itemEl.classList.remove('updating');
+        itemEl.classList.add('update-success');
+        setTimeout(() => {
+          itemEl?.classList.remove('update-success');
+        }, 1000);
+      }
+      
+      toast.success(t("statusUpdated"));
+    } catch (error) {
+      console.error("Error moving content:", error);
+      const itemEl = document.getElementById(`wrapper-${itemId}`);
+      if (itemEl) {
+        itemEl.classList.remove('updating');
+        itemEl.classList.add('update-error');
+        setTimeout(() => {
+          itemEl?.classList.remove('update-error');
+        }, 1000);
+      }
+      
+      toast.error(t("errorUpdatingStatus"));
+    }
+  };
+
+  // Handle viewing history
+  const handleViewHistory = (item: ContentItem) => {
+    try {
+      console.log("Opening history dialog for item:", item.id, "History:", item.history);
+      setSelectedItem(item);
+      setHistoryDialogOpen(true);
+    } catch (error) {
+      console.error("Error opening history dialog:", error);
+      toast.error(t("errorViewingHistory"));
+    }
+  };
+
   return (
     <>
       {dragError && (
@@ -309,24 +432,43 @@ export function ContentBoard() {
       </div>
       
       <div className={`${isMobile ? 'flex flex-col space-y-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4'} pb-4`}>
-        {statuses.map((status, index) => (
+        {statuses.map((status, index) => {
+          const itemsInStatus = getContentByStatus(status);
+          return (
           <div 
             key={status}
             className={`transition-all bg-background/70 backdrop-blur-sm rounded-lg border ${isDragging ? 'drop-target' : ''}`}
           >
             <ContentBoardColumn
               status={status}
-              items={getContentByStatus(status) || []}
+              items={itemsInStatus}
               onItemClick={handleItemClick}
               index={index}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               onDragStart={handleDragStart}
               isDraggingOver={draggingOverStatus === status}
+              onDeleteItem={deleteContentItem}
+              onMoveItem={handleMoveContent}
+              onViewHistory={handleViewHistory}
+              hasHistoryFn={hasHistory}
             />
           </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* History Dialog */}
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{selectedItem?.title || t("contentHistory")}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto p-4 bg-muted rounded-md">
+            <HistoryTimeline history={selectedItem?.history || []} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

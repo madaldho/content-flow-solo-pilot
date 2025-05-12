@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ContentBoard } from "@/components/ContentBoard";
 import { Header } from "@/components/Header";
@@ -84,7 +83,7 @@ export default function ContentBoardPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glassmorphism p-3 md:p-4 rounded-xl shadow-sm">
           <h1 className="text-xl md:text-2xl font-medium">{t("contentBoard")}</h1>
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-col xs:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
             <div className="relative w-full sm:w-auto">
               <Input
                 id="content-search"
@@ -92,7 +91,7 @@ export default function ContentBoardPage() {
                 placeholder={t("search")}
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="pl-9 rounded-xl w-full sm:w-[220px]"
+                className="pl-9 rounded-xl w-full sm:w-[220px] text-sm"
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
@@ -101,7 +100,7 @@ export default function ContentBoardPage() {
               value={platformFilter} 
               onValueChange={(value) => handlePlatformFilterChange(value as Platform | "All")}
             >
-              <SelectTrigger className="w-full sm:w-[180px] rounded-xl">
+              <SelectTrigger className="w-full sm:w-[180px] rounded-xl text-sm">
                 <SelectValue placeholder={t("filterByPlatform")} />
               </SelectTrigger>
               <SelectContent className="glassmorphism rounded-xl">

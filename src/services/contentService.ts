@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ContentItem, ContentStatus, Platform, HistoryEntry } from '@/types/content';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,21 +19,18 @@ const mapDbItemToContentItem = (item: any): ContentItem => {
 
   // Handle platforms array - backwards compatibility
   let platforms: Platform[] = [];
-  if (item.platform) {
-    // Always include the main platform
+  
+  // Periksa apakah ada platforms di field JSON metrics
+  const metrics = parseJson(item.metrics);
+  if (metrics?.platforms && Array.isArray(metrics.platforms)) {
+    platforms = metrics.platforms.map((p: any) => p.name || "");
+  } else if (item.platform) {
+    // Jika tidak ada platforms di metrics, gunakan platform
     platforms = [item.platform];
   }
   
-  // Handle metrics object
-  const metrics = parseJson(item.metrics);
-
-  // Handle content checklist
-  const contentChecklist = parseJson(item.content_checklist) || {
-    intro: false,
-    mainPoints: false,
-    callToAction: false,
-    outro: false
-  };
+  // Parse platform links
+  const platformLinks = parseJson(item.platform_links) || {};
 
   // Convert from DB format to app format
   return {
@@ -49,9 +45,21 @@ const mapDbItemToContentItem = (item: any): ContentItem => {
     publicationDate: item.publication_date ? new Date(item.publication_date) : undefined,
     notes: item.notes,
     referenceLink: item.reference_link,
+    contentLink: item.content_link,
+    platformLinks: platformLinks,
+    isEndorsement: item.is_endorsement || false,
+    isCollaboration: item.is_collaboration || false,
+    endorsementName: item.endorsement_name || '',
+    collaborationName: item.collaboration_name || '',
+    endorsementPrice: item.endorsement_price || '',
     script: item.script,
     scriptFile: item.script_file,
-    contentChecklist: contentChecklist,
+    contentChecklist: parseJson(item.content_checklist) || {
+      intro: false,
+      mainPoints: false,
+      callToAction: false,
+      outro: false
+    },
     productionNotes: item.production_notes,
     equipmentUsed: item.equipment_used || [],
     contentFiles: item.content_files || [],
@@ -99,6 +107,27 @@ export const addContent = async (
       newStatus: content.status
     }];
     
+    // Siapkan metrics dengan platforms
+    const platforms = Array.isArray(content.platforms) && content.platforms.length > 0
+      ? content.platforms
+      : [content.platform];
+      
+    const initialMetrics = content.metrics || {};
+    
+    // Buat atau perbarui platforms dalam metrics
+    const metricsWithPlatforms = {
+      ...initialMetrics,
+      platforms: platforms.map(platform => ({
+        name: platform,
+        views: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        saved: 0,
+        engagement_rate: 0
+      }))
+    };
+    
     // Insert the content item
     const { error } = await supabase
       .from('content_items')
@@ -111,12 +140,19 @@ export const addContent = async (
         publication_date,
         notes: content.notes,
         reference_link: content.referenceLink,
+        content_link: content.contentLink,
+        platform_links: content.platformLinks ? JSON.stringify(content.platformLinks) : null,
+        is_endorsement: content.isEndorsement || false,
+        is_collaboration: content.isCollaboration || false,
+        endorsement_name: content.endorsementName || '',
+        collaboration_name: content.collaborationName || '',
+        endorsement_price: content.endorsementPrice || '',
         script: content.script,
         script_file: content.scriptFile,
         production_notes: content.productionNotes,
         equipment_used: content.equipmentUsed,
         content_files: content.contentFiles,
-        metrics: content.metrics ? JSON.stringify(content.metrics) : null,
+        metrics: JSON.stringify(metricsWithPlatforms),
         history: JSON.stringify(initialHistory),
         content_checklist: JSON.stringify({
           intro: false,
@@ -159,7 +195,14 @@ export const updateContent = async (
     
     // Map fields from ContentItem to DB columns
     if (updates.title !== undefined) updateData.title = updates.title;
-    if (updates.platform !== undefined) updateData.platform = updates.platform;
+    
+    // Perbarui platform dengan platform pertama dari platforms jika tersedia
+    if (updates.platforms && Array.isArray(updates.platforms) && updates.platforms.length > 0) {
+      updateData.platform = updates.platforms[0];
+    } else if (updates.platform !== undefined) {
+      updateData.platform = updates.platform;
+    }
+    
     if (updates.status !== undefined) updateData.status = updates.status;
     if (updates.tags !== undefined) updateData.tags = updates.tags;
     if (updates.publicationDate !== undefined) {
@@ -169,6 +212,13 @@ export const updateContent = async (
     }
     if (updates.notes !== undefined) updateData.notes = updates.notes;
     if (updates.referenceLink !== undefined) updateData.reference_link = updates.referenceLink;
+    if (updates.contentLink !== undefined) updateData.content_link = updates.contentLink;
+    if (updates.platformLinks !== undefined) updateData.platform_links = JSON.stringify(updates.platformLinks);
+    if (updates.isEndorsement !== undefined) updateData.is_endorsement = updates.isEndorsement;
+    if (updates.isCollaboration !== undefined) updateData.is_collaboration = updates.isCollaboration;
+    if (updates.endorsementName !== undefined) updateData.endorsement_name = updates.endorsementName;
+    if (updates.collaborationName !== undefined) updateData.collaboration_name = updates.collaborationName;
+    if (updates.endorsementPrice !== undefined) updateData.endorsement_price = updates.endorsementPrice;
     if (updates.script !== undefined) updateData.script = updates.script;
     if (updates.scriptFile !== undefined) updateData.script_file = updates.scriptFile;
     if (updates.contentChecklist !== undefined) {
@@ -177,26 +227,85 @@ export const updateContent = async (
     if (updates.productionNotes !== undefined) updateData.production_notes = updates.productionNotes;
     if (updates.equipmentUsed !== undefined) updateData.equipment_used = updates.equipmentUsed;
     if (updates.contentFiles !== undefined) updateData.content_files = updates.contentFiles;
-    if (updates.metrics !== undefined) updateData.metrics = JSON.stringify(updates.metrics);
     
-    // If status has changed, update history
-    if (updates.status && currentItem && updates.status !== currentItem.status) {
-      // Parse existing history or initialize a new array
-      const currentHistory = currentItem.history ? 
-        (typeof currentItem.history === 'string' ? 
-          JSON.parse(currentItem.history) : currentItem.history) : [];
+    // Perbarui metrics
+    if (updates.metrics !== undefined || updates.platforms !== undefined) {
+      // Parse existing metrics
+      const currentMetrics = currentItem.metrics 
+        ? (typeof currentItem.metrics === 'string' 
+          ? JSON.parse(currentItem.metrics) 
+          : currentItem.metrics) 
+        : {};
+      
+      // Perbarui platforms dalam metrics jika platforms diupdate
+      if (updates.platforms && Array.isArray(updates.platforms)) {
+        // Dapatkan platform-platform yang sudah ada di metrics
+        const existingPlatforms = Array.isArray(currentMetrics.platforms) 
+          ? currentMetrics.platforms 
+          : [];
+    
+        // Buat map dari platform name ke data platform
+        const platformMap = new Map();
+        existingPlatforms.forEach(platform => {
+          if (platform && platform.name) {
+            platformMap.set(platform.name, platform);
+          }
+        });
+        
+        // Buat platforms baru berdasarkan updates.platforms
+        const newPlatforms = updates.platforms.map(platformName => {
+          // Gunakan data yang sudah ada jika tersedia, atau buat baru
+          if (platformMap.has(platformName)) {
+            return platformMap.get(platformName);
+          } else {
+            return {
+              name: platformName,
+              views: 0,
+              likes: 0,
+              comments: 0,
+              shares: 0,
+              saved: 0,
+              engagement_rate: 0
+            };
+          }
+        });
+        
+        // Update metrics dengan platforms baru
+        const updatedMetrics = {
+          ...currentMetrics,
+          platforms: newPlatforms
+        };
+        
+        updateData.metrics = JSON.stringify(updatedMetrics);
+      } else if (updates.metrics) {
+        // Jika hanya metrics yang diupdate
+        const updatedMetrics = {
+          ...currentMetrics,
+          ...updates.metrics
+        };
+        
+        updateData.metrics = JSON.stringify(updatedMetrics);
+      }
+    }
+    
+    // Handle status change history
+    if (updates.status && updates.status !== currentItem.status) {
+      // Parse existing history
+      const historyArray = currentItem.history 
+        ? (typeof currentItem.history === 'string' 
+          ? JSON.parse(currentItem.history) 
+          : currentItem.history) 
+        : [];
       
       // Add new history entry
-      const newHistory = [
-        ...currentHistory,
-        {
+      const newHistoryEntry: HistoryEntry = {
           timestamp: new Date(),
-          previousStatus: currentItem.status,
-          newStatus: updates.status
-        }
-      ];
+        previousStatus: currentItem.status as ContentStatus,
+        newStatus: updates.status as ContentStatus
+      };
       
-      updateData.history = JSON.stringify(newHistory);
+      historyArray.push(newHistoryEntry);
+      updateData.history = JSON.stringify(historyArray);
     }
     
     // Update the content item

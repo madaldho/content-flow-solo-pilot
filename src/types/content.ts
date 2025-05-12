@@ -48,6 +48,13 @@ export interface ContentItem {
   publicationDate?: Date;
   notes?: string;
   referenceLink?: string;
+  contentLink?: string;     // Link ke konten yang dipublikasikan
+  platformLinks?: Record<string, string>; // Menyimpan link untuk setiap platform
+  isEndorsement?: boolean;  // Apakah konten ini endorsement
+  isCollaboration?: boolean; // Apakah konten ini kolaborasi
+  endorsementName?: string; // Nama endorser
+  collaborationName?: string; // Nama kolaborator
+  endorsementPrice?: string; // Harga endorsement
   script?: string;
   scriptFile?: string;
   contentChecklist: {

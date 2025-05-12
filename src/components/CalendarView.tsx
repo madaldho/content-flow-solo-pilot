@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +5,8 @@ import { useContent } from "@/context/ContentContext";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { ContentItem } from "@/types/content";
+import { useLanguage } from "@/context/LanguageContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CalendarViewProps {
   onSelectContent: (id: string) => void;
@@ -14,6 +15,8 @@ interface CalendarViewProps {
 export function CalendarView({ onSelectContent }: CalendarViewProps) {
   const { contentItems } = useContent();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const { t } = useLanguage();
+  const isMobile = useIsMobile();
 
   // Ensure contentItems is an array
   const safeContentItems = Array.isArray(contentItems) ? contentItems : [];
@@ -44,17 +47,18 @@ export function CalendarView({ onSelectContent }: CalendarViewProps) {
   const selectedDateContent = selectedDate ? getContentForDate(selectedDate) : [];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-      <Card className="col-span-1 md:col-span-2">
-        <CardHeader>
-          <CardTitle>Publishing Calendar</CardTitle>
+    <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
+      <Card className="w-full lg:w-2/5 bg-background/70">
+        <CardHeader className="p-3 md:p-4">
+          <CardTitle className="text-lg md:text-xl">{t("publishingCalendar")}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-4 pt-0">
+          <div className="flex justify-center lg:justify-start">
           <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={setSelectedDate}
-            className="rounded-md border"
+              className="rounded-md border max-w-full"
             modifiers={{
               hasContent: (date) => dateHasContent(date)
             }}
@@ -66,37 +70,38 @@ export function CalendarView({ onSelectContent }: CalendarViewProps) {
               }
             }}
           />
+          </div>
         </CardContent>
       </Card>
-      <Card className="col-span-1 md:col-span-3">
-        <CardHeader>
-          <CardTitle>
+      <Card className="w-full lg:w-3/5 bg-background/70">
+        <CardHeader className="p-3 md:p-4">
+          <CardTitle className="text-lg md:text-xl">
             {selectedDate ? (
-              <span>Content for {format(selectedDate, "MMMM d, yyyy")}</span>
+              <span>{t("contentForDate").replace('{date}', format(selectedDate, "MMMM d, yyyy"))}</span>
             ) : (
-              <span>Select a date</span>
+              <span>{t("selectDate")}</span>
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-4 pt-0 max-h-[50vh] lg:max-h-[60vh] overflow-y-auto">
           {selectedDateContent.length === 0 ? (
-            <p className="text-muted-foreground">No content scheduled for this date.</p>
+            <p className="text-muted-foreground text-sm md:text-base">{t("noContentScheduled")}</p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {selectedDateContent.map((item) => (
                 <div 
                   key={item.id}
-                  className="p-4 border rounded-lg cursor-pointer hover:border-primary"
+                  className="p-3 md:p-4 border rounded-lg cursor-pointer hover:border-primary transition-colors"
                   onClick={() => onSelectContent(item.id)}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">{item.title}</h3>
-                    <Badge>{item.platform}</Badge>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <h3 className="font-medium line-clamp-1">{item.title}</h3>
+                    <Badge className="w-fit">{item.platform}</Badge>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>Status: {item.status}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm text-muted-foreground">
+                    <span>Status: {t(item.status.toLowerCase().replace(/\s+/g, ""))}</span>
                     {item.tags && item.tags.length > 0 && (
-                      <Badge variant="outline">{item.tags[0]}</Badge>
+                      <Badge variant="outline" className="w-fit">{item.tags[0]}</Badge>
                     )}
                   </div>
                 </div>

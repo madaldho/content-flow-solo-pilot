@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { Check, ChevronsUpDown, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -125,51 +124,53 @@ export function ContentTagSelect({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0 rounded-xl shadow-lg border border-border/50 bg-popover/95 backdrop-blur-sm">
-          <Command>
-            <div className="flex items-center border-b p-2">
-              <CommandInput 
-                placeholder={t("searchTags")} 
-                className="rounded-lg flex-1" 
-                value={inputValue}
-                onValueChange={setInputValue}
-                onKeyDown={handleAddCustomTag}
-              />
-              {inputValue.trim() && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={handleAddCustomTagButton}
-                  className="ml-2"
-                  type="button"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <CommandList>
-              <CommandEmpty>{t("noTagFound")}</CommandEmpty>
-              <CommandGroup className="max-h-60 overflow-auto p-2">
-                {availableTags.map((tag) => (
-                  <CommandItem
-                    key={tag}
-                    value={tag}
-                    onSelect={() => toggleTag(tag)}
-                    className="flex items-center gap-2 rounded-lg hover:bg-secondary/50 transition-colors mb-1"
+        {open && (
+          <PopoverContent className="w-full p-0 rounded-xl shadow-lg border border-border/50 bg-popover/95 backdrop-blur-sm">
+            <Command>
+              <div className="flex items-center border-b p-2">
+                <CommandInput 
+                  placeholder={t("searchTags")} 
+                  className="rounded-lg flex-1" 
+                  value={inputValue}
+                  onValueChange={setInputValue}
+                  onKeyDown={handleAddCustomTag}
+                />
+                {inputValue.trim() && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={handleAddCustomTagButton}
+                    className="ml-2"
+                    type="button"
                   >
-                    <div className={cn(
-                      "flex items-center justify-center rounded-md border w-5 h-5",
-                      safeValue.includes(tag) ? "bg-primary border-primary" : "border-input"
-                    )}>
-                      {safeValue.includes(tag) && <Check className="h-3 w-3 text-primary-foreground" />}
-                    </div>
-                    <span>{t(tag.toLowerCase()) || tag}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <CommandList>
+                <CommandEmpty>{t("noTagFound")}</CommandEmpty>
+                <CommandGroup className="max-h-60 overflow-auto p-2">
+                  {availableTags.map((tag) => (
+                    <CommandItem
+                      key={tag}
+                      value={tag}
+                      onSelect={() => toggleTag(tag)}
+                      className="flex items-center gap-2 rounded-lg hover:bg-secondary/50 transition-colors mb-1"
+                    >
+                      <div className={cn(
+                        "flex items-center justify-center rounded-md border w-5 h-5",
+                        safeValue.includes(tag) ? "bg-primary border-primary" : "border-input"
+                      )}>
+                        {safeValue.includes(tag) && <Check className="h-3 w-3 text-primary-foreground" />}
+                      </div>
+                      <span>{t(tag.toLowerCase()) || tag}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        )}
       </Popover>
       
       {safeValue.length > 0 && (

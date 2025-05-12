@@ -1,6 +1,5 @@
-
 import * as React from "react";
-import { MoreHorizontal, Edit, Trash2, MoveRight, History } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, MoveRight, History, ClipboardList } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,16 +21,20 @@ interface ContentActionMenuProps {
   onEdit: () => void;
   onDelete: () => void;
   onMove?: (status: ContentStatus) => void;
+  onViewHistory?: () => void;
   currentStatus?: ContentStatus;
   className?: string;
+  hasHistory?: boolean;
 }
 
 export function ContentActionMenu({ 
   onEdit, 
   onDelete, 
   onMove, 
+  onViewHistory,
   currentStatus,
-  className 
+  className,
+  hasHistory = false
 }: ContentActionMenuProps) {
   const { t } = useLanguage();
   
@@ -86,6 +89,17 @@ export function ContentActionMenu({
           {t("edit")}
         </DropdownMenuItem>
         
+        {onViewHistory && hasHistory && (
+          <DropdownMenuItem onClick={(e) => { 
+            e.stopPropagation();
+            console.log("Opening history view from ContentActionMenu");
+            onViewHistory();
+          }}>
+            <History className="mr-2 h-4 w-4" />
+            {t("viewHistory")}
+          </DropdownMenuItem>
+        )}
+        
         {currentStatus && onMove && (
           <>
             <DropdownMenuSeparator />
@@ -93,7 +107,6 @@ export function ContentActionMenu({
               {t("moveToStatus")}
             </DropdownMenuLabel>
             
-            {/* Direct next status option */}
             {nextStatus[currentStatus] && (
               <DropdownMenuItem 
                 className="font-medium"
@@ -111,7 +124,7 @@ export function ContentActionMenu({
             
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="pl-2">
-                <History className="mr-2 h-4 w-4" />
+                <ClipboardList className="mr-2 h-4 w-4" />
                 {t("allStatuses")}
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
