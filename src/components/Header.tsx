@@ -88,6 +88,13 @@ export function Header({ onSearch }: HeaderProps) {
           </Button>
           <Button 
             variant="ghost" 
+            onClick={() => navigate("/sweet-spot")}
+            className="rounded-xl"
+          >
+            {t("sweetSpot") || "Sweet Spot"}
+          </Button>
+          <Button 
+            variant="ghost" 
             onClick={() => navigate("/settings")}
             className="rounded-xl"
           >
@@ -187,6 +194,16 @@ export function Header({ onSearch }: HeaderProps) {
               }}
             >
               {t("calendar")}
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start"
+              onClick={() => {
+                navigate("/sweet-spot");
+                setIsMenuOpen(false);
+              }}
+            >
+              {t("sweetSpot") || "Sweet Spot"}
             </Button>
             <Button 
               variant="ghost" 

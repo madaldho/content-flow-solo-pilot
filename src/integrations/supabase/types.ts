@@ -74,15 +74,22 @@ export type Database = {
       }
       content_items: {
         Row: {
+          collaboration_name: string | null
           content_checklist: Json | null
           content_files: string[] | null
+          content_link: string | null
           created_at: string
+          endorsement_name: string | null
+          endorsement_price: string | null
           equipment_used: string[] | null
           history: Json | null
           id: string
+          is_collaboration: boolean | null
+          is_endorsement: boolean | null
           metrics: Json | null
           notes: string | null
           platform: string
+          platform_links: Json | null
           production_notes: string | null
           publication_date: string | null
           reference_link: string | null
@@ -92,17 +99,25 @@ export type Database = {
           tags: string[] | null
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
+          collaboration_name?: string | null
           content_checklist?: Json | null
           content_files?: string[] | null
+          content_link?: string | null
           created_at?: string
+          endorsement_name?: string | null
+          endorsement_price?: string | null
           equipment_used?: string[] | null
           history?: Json | null
           id?: string
+          is_collaboration?: boolean | null
+          is_endorsement?: boolean | null
           metrics?: Json | null
           notes?: string | null
           platform: string
+          platform_links?: Json | null
           production_notes?: string | null
           publication_date?: string | null
           reference_link?: string | null
@@ -112,17 +127,25 @@ export type Database = {
           tags?: string[] | null
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
+          collaboration_name?: string | null
           content_checklist?: Json | null
           content_files?: string[] | null
+          content_link?: string | null
           created_at?: string
+          endorsement_name?: string | null
+          endorsement_price?: string | null
           equipment_used?: string[] | null
           history?: Json | null
           id?: string
+          is_collaboration?: boolean | null
+          is_endorsement?: boolean | null
           metrics?: Json | null
           notes?: string | null
           platform?: string
+          platform_links?: Json | null
           production_notes?: string | null
           publication_date?: string | null
           reference_link?: string | null
@@ -132,6 +155,7 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -223,7 +247,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_engagement_rate: {
+        Args: {
+          views: number
+          likes: number
+          comments: number
+          shares: number
+          saved: number
+        }
+        Returns: number
+      }
+      snake_to_camel: {
+        Args: { snake_case: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

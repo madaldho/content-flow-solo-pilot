@@ -1,3 +1,4 @@
+
 import { Route, Routes } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import ContentBoardPage from "./pages/ContentBoardPage";
@@ -9,6 +10,7 @@ import ContentFormPage from "./pages/ContentFormPage";
 import ContentMetricsPage from "./pages/ContentMetricsPage";
 import ContentDetailPage from "./pages/ContentDetailPage";
 import { Toaster } from "./components/ui/sonner";
+import SweetSpotAnalysisPage from "./pages/SweetSpotAnalysisPage";
 
 function App() {
   return (
@@ -22,6 +24,7 @@ function App() {
           <Route path="/content/detail/:id" element={<ContentDetailPage />} />
           <Route path="/content/metrics/:id" element={<ContentMetricsPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/sweet-spot" element={<SweetSpotAnalysisPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
