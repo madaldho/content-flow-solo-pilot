@@ -1,4 +1,5 @@
 
+import React from "react";
 import { SweetSpotEntry } from "@/types/sweetSpot";
 import {
   Table,
