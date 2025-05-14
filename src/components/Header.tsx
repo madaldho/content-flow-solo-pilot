@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -7,6 +6,9 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import { useLanguage } from "@/context/LanguageContext";
+import { NavLink, Link } from "react-router-dom";
+import { MobileSidebarLink } from "@/components/ui/mobile-sidebar-link";
+import { Layers, LayoutDashboard, ListTodo, CalendarDays, Target, Image } from "lucide-react";
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -19,6 +21,8 @@ export function Header({ onSearch }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const isMobile = window.innerWidth <= 768;
 
   const handleSearch = () => {
     if (onSearch) {
@@ -43,66 +47,44 @@ export function Header({ onSearch }: HeaderProps) {
   }, [navigate]);
 
   return (
-    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="container flex h-14 md:h-16 items-center justify-between">
+    <header className="sticky top-0 z-40 border-b shadow-sm bg-background/95 backdrop-blur">
+      <nav className="flex h-16 items-center justify-between px-4">
+        {/* Logo and menu */}
         <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label={isMenuOpen ? t("closeMenu") : t("openMenu")}
-          >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          {/* Mobile menu toggle */}
+          {isMobile && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="mr-1 rounded-full"
+            >
+              {isSidebarOpen ? <X /> : <Menu />}
+            </Button>
+          )}
           
-          <h1 
-            className="text-xl font-bold cursor-pointer"
-            onClick={() => navigate("/")}
+          {/* Logo/Brand */}
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 font-medium text-xl"
+            onClick={() => setIsSidebarOpen(false)}
           >
-            {t("appName")}<span className="text-primary">{t("appNameHighlight")}</span>
-          </h1>
+            <Layers className="h-6 w-6" />
+            <span className="hidden sm:inline-block">ContentFusion</span>
+          </Link>
         </div>
 
-        <div className="hidden md:flex items-center gap-2 md:gap-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/")}
-            className="rounded-xl"
-          >
-            {t("dashboard")}
-          </Button>
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/content-board")}
-            className="rounded-xl"
-          >
-            {t("contentBoard")}
-          </Button>
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/calendar")}
-            className="rounded-xl"
-          >
-            {t("calendar")}
-          </Button>
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/sweet-spot")}
-            className="rounded-xl"
-          >
-            {t("sweetSpot") || "Sweet Spot"}
-          </Button>
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/settings")}
-            className="rounded-xl"
-          >
-            {t("settings")}
-          </Button>
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex md:items-center md:gap-6">
+          <NavLink to="/">Dashboard</NavLink>
+          <NavLink to="/content-board">Content Board</NavLink>
+          <NavLink to="/calendar">Calendar</NavLink>
+          <NavLink to="/sweet-spot">Sweet Spot</NavLink>
+          <NavLink to="/inspiration">Inspiration</NavLink>
         </div>
-        
-        <div className="hidden md:flex items-center gap-2 md:gap-4">
+
+        {/* Search and Actions */}
+        <div className="flex items-center gap-2">
           {/* Search box for desktop */}
           <div className="relative flex w-full max-w-sm items-center space-x-2">
             <Input
@@ -121,23 +103,47 @@ export function Header({ onSearch }: HeaderProps) {
           <LanguageSelector language={language} setLanguage={setLanguage} variant="icon" />
           <ThemeToggle />
         </div>
-        
-        <div className="md:hidden flex items-center gap-2">
-          {/* Mobile search button */}
-          <Button 
-            size="icon" 
-            variant="ghost"
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
-            aria-label={t("searchButton")}
-          >
-            <Search className="h-4 w-4" />
-          </Button>
-          <LanguageSelector language={language} setLanguage={setLanguage} variant="icon" />
-          <ThemeToggle />
-        </div>
-      </div>
+      </nav>
       
-      {/* Mobile search input */}
+      {/* Mobile Sidebar */}
+      {isMobile && (
+        <div 
+          className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-200 ${
+            isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setIsSidebarOpen(false)}
+        >
+          <div 
+            className={`fixed inset-y-0 left-0 w-64 bg-background p-4 shadow-xl transition-transform duration-200 ${
+              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col gap-1 mt-4">
+              <MobileSidebarLink to="/" icon={<LayoutDashboard size={20} />}>
+                Dashboard
+              </MobileSidebarLink>
+              <MobileSidebarLink to="/content-board" icon={<ListTodo size={20} />}>
+                Content Board
+              </MobileSidebarLink>
+              <MobileSidebarLink to="/calendar" icon={<CalendarDays size={20} />}>
+                Calendar
+              </MobileSidebarLink>
+              <MobileSidebarLink to="/sweet-spot" icon={<Target size={20} />}>
+                Sweet Spot
+              </MobileSidebarLink>
+              <MobileSidebarLink to="/inspiration" icon={<Image size={20} />}>
+                Inspiration
+              </MobileSidebarLink>
+              <MobileSidebarLink to="/settings" icon={<Settings size={20} />}>
+                Settings
+              </MobileSidebarLink>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Mobile search button */}
       {isSearchOpen && (
         <div className="md:hidden px-4 py-2 border-t border-border/50 animate-slideDown">
           <div className="flex w-full items-center space-x-2">

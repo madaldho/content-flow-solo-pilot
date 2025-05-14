@@ -1,15 +1,22 @@
 
-import React from 'react';
-import { LanguageProvider } from './LanguageContext';
-import { ContentProvider } from './ContentContext';
-import { CustomOptionsProvider } from './CustomOptionsContext';
+import { ContentProvider } from "@/context/ContentContext";
+import { LanguageProvider } from "@/context/LanguageContext";
+import { CustomOptionsProvider } from "@/context/CustomOptionsContext";
+import { SweetSpotProvider } from "@/context/SweetSpotContext";
+import { InspirationProvider } from "@/context/InspirationContext";
 
-export const CombinedContextWrapper: React.FC<{children: React.ReactNode}> = ({ children }) => {
+export const CombinedContextWrapper: React.FC<{ children: React.ReactNode }> = ({ 
+  children 
+}) => {
   return (
     <LanguageProvider>
       <CustomOptionsProvider>
         <ContentProvider>
-          {children}
+          <SweetSpotProvider>
+            <InspirationProvider>
+              {children}
+            </InspirationProvider>
+          </SweetSpotProvider>
         </ContentProvider>
       </CustomOptionsProvider>
     </LanguageProvider>
