@@ -12,8 +12,6 @@ import ContentDetailPage from "./pages/ContentDetailPage";
 import { Toaster } from "./components/ui/sonner";
 import SweetSpotAnalysisPage from "./pages/SweetSpotAnalysisPage";
 import SweetSpotFormPage from "./pages/SweetSpotFormPage";
-import InspirationPage from "./pages/InspirationPage";
-import InspirationFormPage from "./pages/InspirationFormPage";
 
 function App() {
   return (
@@ -30,9 +28,6 @@ function App() {
           <Route path="/sweet-spot" element={<SweetSpotAnalysisPage />} />
           <Route path="/sweet-spot/new" element={<SweetSpotFormPage />} />
           <Route path="/sweet-spot/edit/:id" element={<SweetSpotFormPage />} />
-          <Route path="/inspiration" element={<InspirationPage />} />
-          <Route path="/inspiration/new" element={<InspirationFormPage />} />
-          <Route path="/inspiration/edit/:id" element={<InspirationFormPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
