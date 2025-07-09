@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { SweetSpotEntry, NicheStats, SweetSpotAnalysis } from '@/types/sweetSpot';
 import { API_BASE_URL } from '@/lib/api-config';
@@ -78,7 +79,7 @@ class SweetSpotService {
   // Get all sweet spot entries from database
   async getData(): Promise<SweetSpotEntry[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/sweetspot/entries`);
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -98,7 +99,7 @@ class SweetSpotService {
   // Get settings from database
   async getSettings(): Promise<SweetSpotSettings> {
     try {
-      const response = await fetch(`${API_BASE_URL}/sweetspot/settings`);
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/settings`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -115,7 +116,7 @@ class SweetSpotService {
   // Save settings to database
   async saveSettings(settings: SweetSpotSettings): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/sweetspot/settings`, {
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -144,26 +145,19 @@ class SweetSpotService {
   // Create a new entry
   async createEntry(entry: Omit<SweetSpotEntry, 'id'>): Promise<SweetSpotEntry> {
     try {
-      console.log('🐛 Debug: Service received entry:', entry);
-      const mappedEntry = this.mapEntryToDbFormat(entry);
-      console.log('🐛 Debug: Mapped entry for API:', mappedEntry);
-      
-      const response = await fetch(`${API_BASE_URL}/sweetspot/entries`, {
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(mappedEntry),
+        body: JSON.stringify(this.mapEntryToDbFormat(entry)),
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('🐛 Debug: API error response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('🐛 Debug: API response data:', data);
       return this.mapDbRowToEntry(data);
     } catch (error) {
       console.error("Error creating sweet spot entry:", error);
@@ -174,7 +168,7 @@ class SweetSpotService {
   // Get an entry by ID
   async getEntry(id: string): Promise<SweetSpotEntry | undefined> {
     try {
-      const response = await fetch(`${API_BASE_URL}/sweetspot/entries/${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries/${id}`);
       if (!response.ok) {
         if (response.status === 404) return undefined;
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -190,7 +184,7 @@ class SweetSpotService {
   // Update an entry
   async updateEntry(id: string, updates: Partial<SweetSpotEntry>): Promise<SweetSpotEntry | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/sweetspot/entries/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -214,7 +208,7 @@ class SweetSpotService {
   // Delete an entry
   async deleteEntry(id: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL}/sweetspot/entries/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries/${id}`, {
         method: 'DELETE',
       });
       

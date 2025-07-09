@@ -25,46 +25,20 @@ import { Card } from "@/components/ui/card";
 export default function SweetSpotAnalysisPage() {
   const [entries, setEntries] = useState<SweetSpotEntry[]>([]);
   const [analysis, setAnalysis] = useState<SweetSpotAnalysis | null>(null);
-  const [exampleData, setExampleData] = useState<SweetSpotEntry[]>([]);
-  const [exampleAnalysis, setExampleAnalysis] = useState<SweetSpotAnalysis | null>(null);
   const [showExampleData, setShowExampleData] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguage();
   const navigate = useNavigate();
   
   // Load data and calculate analysis
-  const loadData = async () => {
-    try {
-      setIsLoading(true);
-      const data = await sweetSpotService.getData();
-      setEntries(data);
-      const analysisResult = await sweetSpotService.calculateAnalysis(data);
-      setAnalysis(analysisResult);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error("Failed to load data");
-    } finally {
-      setIsLoading(false);
-    }
+  const loadData = () => {
+    const data = sweetSpotService.getData();
+    setEntries(data);
+    setAnalysis(sweetSpotService.calculateAnalysis(data));
   };
   
   useEffect(() => {
     loadData();
-    
-    // Initialize example analysis
-    const initExampleAnalysis = async () => {
-      try {
-        const exampleDataResult = sweetSpotService.getExampleData();
-        setExampleData(exampleDataResult);
-        const exampleAnalysisResult = await sweetSpotService.calculateAnalysis(exampleDataResult);
-        setExampleAnalysis(exampleAnalysisResult);
-      } catch (error) {
-        console.error('Error loading example analysis:', error);
-      }
-    };
-    
-    initExampleAnalysis();
     document.title = "Sweet Spot Analysis | ContentFlow";
   }, []);
   
@@ -89,22 +63,18 @@ export default function SweetSpotAnalysisPage() {
   };
   
   // Handle deleting an entry
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (deleteConfirmId) {
-      try {
-        setIsLoading(true);
-        await sweetSpotService.deleteEntry(deleteConfirmId);
-        toast.success(t("entryDeleted") || "Entry deleted successfully");
-        await loadData();
-        setDeleteConfirmId(null);
-      } catch (error) {
-        console.error('Error deleting entry:', error);
-        toast.error("Failed to delete entry");
-      } finally {
-        setIsLoading(false);
-      }
+      sweetSpotService.deleteEntry(deleteConfirmId);
+      toast.success(t("entryDeleted") || "Entry deleted successfully");
+      loadData();
+      setDeleteConfirmId(null);
     }
   };
+  
+  // Get example data for reference
+  const exampleData = sweetSpotService.getExampleData();
+  const exampleAnalysis = sweetSpotService.calculateAnalysis(exampleData);
   
   return (
     <Layout>

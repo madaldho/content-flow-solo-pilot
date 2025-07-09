@@ -32,25 +32,20 @@ export function SweetSpotSummary({ analysis, onRefresh }: SweetSpotSummaryProps)
   };
 
   // Save new revenue target
-  const handleSaveRevenue = async () => {
+  const handleSaveRevenue = () => {
     const newRevenue = parseInt(revenueInput);
     if (isNaN(newRevenue) || newRevenue <= 0) {
       toast.error(t("invalidRevenue") || "Please enter a valid revenue amount");
       return;
     }
     
-    try {
-      await sweetSpotService.updateTargetRevenue(newRevenue);
-      setIsEditingRevenue(false);
-      toast.success(t("revenueUpdated") || "Target revenue updated successfully");
-      
-      // Refresh analysis data
-      if (onRefresh) {
-        onRefresh();
-      }
-    } catch (error) {
-      console.error("Error updating revenue:", error);
-      toast.error(t("failedToUpdateRevenue") || "Failed to update revenue target");
+    sweetSpotService.updateTargetRevenue(newRevenue);
+    setIsEditingRevenue(false);
+    toast.success(t("revenueUpdated") || "Target revenue updated successfully");
+    
+    // Refresh analysis data
+    if (onRefresh) {
+      onRefresh();
     }
   };
   

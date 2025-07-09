@@ -18,11 +18,10 @@ CREATE TABLE IF NOT EXISTS sweet_spot_entries (
 -- Tabel untuk sweet spot settings
 CREATE TABLE IF NOT EXISTS sweet_spot_settings (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  user_id TEXT NOT NULL DEFAULT 'default-user',
+  user_id TEXT DEFAULT 'default-user',
   target_revenue_per_month BIGINT NOT NULL DEFAULT 10000000,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id)
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Index untuk performa
