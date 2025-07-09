@@ -1,6 +1,5 @@
 import { ContentItem, ContentStatus, Platform, HistoryEntry, ContentStats } from '@/types/content';
 import { v4 as uuidv4 } from 'uuid';
-import { useUser } from '@stackframe/stack';
 import { getApiUrl, apiRequest } from '@/lib/api-config';
 
 // Convert database row to ContentItem format

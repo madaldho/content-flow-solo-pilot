@@ -1,5 +1,6 @@
 
 import { Route, Routes } from "react-router-dom";
+import { useUser } from "@stackframe/stack";
 import Dashboard from "./pages/Dashboard";
 import ContentBoardPage from "./pages/ContentBoardPage";
 import CalendarPage from "./pages/CalendarPage";
@@ -12,8 +13,15 @@ import ContentDetailPage from "./pages/ContentDetailPage";
 import { Toaster } from "./components/ui/sonner";
 import SweetSpotAnalysisPage from "./pages/SweetSpotAnalysisPage";
 import SweetSpotFormPage from "./pages/SweetSpotFormPage";
+import { LoginPage } from "./components/LoginPage";
 
 function App() {
+  const user = useUser();
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
   return (
     <CombinedContextWrapper>
       <div className="font-poppins min-h-screen bg-background">

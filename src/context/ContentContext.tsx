@@ -3,7 +3,6 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { ContentItem, ContentStats, ContentStatus, ContentTag, HistoryEntry, Platform } from "@/types/content";
 import { toast } from "sonner";
 import { fetchContent, addContent, updateContent, deleteContent } from "@/services/contentService";
-import { supabase } from "@/integrations/supabase/client";
 import { useCustomOptions } from './CustomOptionsContext';
 
 interface ContentContextType {
@@ -100,22 +99,9 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Set up real-time subscription for content changes
-    const subscription = supabase
-      .channel('content-changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'content_items' 
-      }, (payload) => {
-        loadContentItems(); // Reload all content when any change occurs
-      })
-      .subscribe();
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      subscription.unsubscribe();
     };
   }, []);
 

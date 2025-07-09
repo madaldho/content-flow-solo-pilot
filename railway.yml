@@ -1,0 +1,28 @@
+version: 2
+
+build:
+  commands:
+    - npm install
+    - npm run build
+
+run:
+  command: node server.cjs
+  
+services:
+  - name: kontenflow-backend
+    plan: hobby
+    buildCommand: npm install
+    startCommand: node server.cjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: ${{DATABASE_URL}}
+      - key: VITE_DATABASE_URL
+        value: ${{DATABASE_URL}}
+      - key: VITE_STACK_PROJECT_ID
+        value: ${{VITE_STACK_PROJECT_ID}}
+      - key: VITE_STACK_PUBLISHABLE_CLIENT_KEY
+        value: ${{VITE_STACK_PUBLISHABLE_CLIENT_KEY}}
+      - key: STACK_SECRET_SERVER_KEY
+        value: ${{STACK_SECRET_SERVER_KEY}}

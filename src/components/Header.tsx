@@ -1,8 +1,9 @@
 
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@stackframe/stack";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Search, Menu, X, Settings } from "lucide-react";
+import { Search, Menu, X, Settings, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { LanguageSelector } from "@/components/ui/language-selector";
@@ -14,11 +15,16 @@ interface HeaderProps {
 
 export function Header({ onSearch }: HeaderProps) {
   const navigate = useNavigate();
+  const user = useUser();
   const { t, language, setLanguage } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const handleLogout = () => {
+    user?.signOut();
+  };
 
   const handleSearch = () => {
     if (onSearch) {
@@ -99,6 +105,14 @@ export function Header({ onSearch }: HeaderProps) {
             className="rounded-xl"
           >
             {t("settings")}
+          </Button>
+          <Button 
+            variant="ghost" 
+            onClick={handleLogout}
+            className="rounded-xl text-red-600 hover:text-red-700"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
           </Button>
         </div>
         
