@@ -222,6 +222,147 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// ========== SWEET SPOT ENDPOINTS ==========
+
+// GET all sweet spot entries
+app.get('/api/sweetspot/entries', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM sweet_spot_entries ORDER BY updated_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Error fetching sweet spot entries:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET sweet spot entry by ID
+app.get('/api/sweetspot/entries/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('SELECT * FROM sweet_spot_entries WHERE id = $1', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Sweet spot entry not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error fetching sweet spot entry:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// CREATE new sweet spot entry
+app.post('/api/sweetspot/entries', async (req, res) => {
+  try {
+    const { niche, account, keywords, audience, revenue_stream, pricing } = req.body;
+    
+    if (!niche || !account || !keywords || !revenue_stream || !pricing) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const result = await pool.query(
+      'INSERT INTO sweet_spot_entries (niche, account, keywords, audience, revenue_stream, pricing) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [niche, account, keywords, audience || 0, revenue_stream, pricing]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error creating sweet spot entry:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// UPDATE sweet spot entry
+app.put('/api/sweetspot/entries/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { niche, account, keywords, audience, revenue_stream, pricing } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE sweet_spot_entries SET niche = $1, account = $2, keywords = $3, audience = $4, revenue_stream = $5, pricing = $6, updated_at = NOW() WHERE id = $7 RETURNING *',
+      [niche, account, keywords, audience || 0, revenue_stream, pricing, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Sweet spot entry not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error updating sweet spot entry:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE sweet spot entry
+app.delete('/api/sweetspot/entries/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('DELETE FROM sweet_spot_entries WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Sweet spot entry not found' });
+    }
+    
+    res.json({ message: 'Sweet spot entry deleted successfully' });
+  } catch (error) {
+    console.error('❌ Error deleting sweet spot entry:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET sweet spot settings
+app.get('/api/sweetspot/settings', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM sweet_spot_settings WHERE user_id = $1', ['default-user']);
+    
+    if (result.rows.length === 0) {
+      // Create default settings if none exist
+      const defaultSettings = await pool.query(
+        'INSERT INTO sweet_spot_settings (user_id, target_revenue_per_month) VALUES ($1, $2) RETURNING *',
+        ['default-user', 10000000]
+      );
+      return res.json(defaultSettings.rows[0]);
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error fetching sweet spot settings:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// UPDATE sweet spot settings
+app.put('/api/sweetspot/settings', async (req, res) => {
+  try {
+    const { target_revenue_per_month } = req.body;
+    
+    if (!target_revenue_per_month) {
+      return res.status(400).json({ error: 'target_revenue_per_month is required' });
+    }
+    
+    const result = await pool.query(
+      'UPDATE sweet_spot_settings SET target_revenue_per_month = $1, updated_at = NOW() WHERE user_id = $2 RETURNING *',
+      [target_revenue_per_month, 'default-user']
+    );
+    
+    if (result.rows.length === 0) {
+      // Create if not exists
+      const newSettings = await pool.query(
+        'INSERT INTO sweet_spot_settings (user_id, target_revenue_per_month) VALUES ($1, $2) RETURNING *',
+        ['default-user', target_revenue_per_month]
+      );
+      return res.json(newSettings.rows[0]);
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error updating sweet spot settings:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 API endpoints available at http://localhost:${PORT}/api`);

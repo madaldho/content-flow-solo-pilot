@@ -1,6 +1,38 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { SweetSpotEntry, NicheStats, SweetSpotAnalysis } from '@/types/sweetSpot';
+import { API_BASE_URL } from '@/lib/api-config';
+
+// Interface untuk database row format
+interface SweetSpotDbRow {
+  id: string;
+  niche: string;
+  account: string;
+  keywords: string;
+  audience: number;
+  revenue_stream: string;
+  pricing: string;
+}
+
+// Interface untuk database entry format
+interface SweetSpotDbEntry {
+  niche: string;
+  account: string;
+  keywords: string;
+  audience: number;
+  revenue_stream: string;
+  pricing: string;
+}
+
+// Interface untuk settings
+interface SweetSpotSettings {
+  targetRevenuePerMonth: number;
+}
+
+// Interface untuk database settings
+interface SweetSpotDbSettings {
+  target_revenue_per_month: number;
+}
 
 // Sample data for reference
 const exampleData: SweetSpotEntry[] = [
@@ -15,25 +47,44 @@ const exampleData: SweetSpotEntry[] = [
 ];
 
 class SweetSpotService {
-  private storageKey = 'sweetspot_data';
-  private settingsKey = 'sweetspot_settings';
-  
-  // Default settings
   private defaultSettings = {
     targetRevenuePerMonth: 10000000, // Default target revenue (10 million Rp)
   };
+
+  // Convert database row to SweetSpotEntry
+  private mapDbRowToEntry(row: SweetSpotDbRow): SweetSpotEntry {
+    return {
+      id: row.id,
+      niche: row.niche,
+      account: row.account,
+      keywords: row.keywords,
+      audience: row.audience,
+      revenueStream: row.revenue_stream,
+      pricing: row.pricing,
+    };
+  }
+
+  // Convert SweetSpotEntry to database format
+  private mapEntryToDbFormat(entry: Omit<SweetSpotEntry, 'id'>): SweetSpotDbEntry {
+    return {
+      niche: entry.niche,
+      account: entry.account,
+      keywords: entry.keywords,
+      audience: entry.audience,
+      revenue_stream: entry.revenueStream,
+      pricing: entry.pricing,
+    };
+  }
   
-  // Initial data is empty - user will add their own data
-  getData(): SweetSpotEntry[] {
+  // Get all sweet spot entries from database
+  async getData(): Promise<SweetSpotEntry[]> {
     try {
-      const storedData = localStorage.getItem(this.storageKey);
-      if (storedData) {
-        return JSON.parse(storedData);
-      } else {
-        // First time use - return empty array
-        this.saveData([]);
-        return [];
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();
+      return data.map(this.mapDbRowToEntry);
     } catch (error) {
       console.error("Error loading sweet spot data:", error);
       return [];
@@ -45,89 +96,143 @@ class SweetSpotService {
     return exampleData;
   }
   
-  // Save data to localStorage
-  saveData(data: SweetSpotEntry[]): void {
+  // Get settings from database
+  async getSettings(): Promise<SweetSpotSettings> {
     try {
-      localStorage.setItem(this.storageKey, JSON.stringify(data));
-    } catch (error) {
-      console.error("Error saving sweet spot data:", error);
-    }
-  }
-  
-  // Get settings
-  getSettings() {
-    try {
-      const settings = localStorage.getItem(this.settingsKey);
-      if (settings) {
-        return JSON.parse(settings);
-      } else {
-        this.saveSettings(this.defaultSettings);
-        return this.defaultSettings;
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/settings`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();
+      return {
+        targetRevenuePerMonth: data.target_revenue_per_month || this.defaultSettings.targetRevenuePerMonth,
+      };
     } catch (error) {
       console.error("Error loading sweet spot settings:", error);
       return this.defaultSettings;
     }
   }
   
-  // Save settings
-  saveSettings(settings: any): void {
+  // Save settings to database
+  async saveSettings(settings: SweetSpotSettings): Promise<void> {
     try {
-      localStorage.setItem(this.settingsKey, JSON.stringify(settings));
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          target_revenue_per_month: settings.targetRevenuePerMonth,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
     } catch (error) {
       console.error("Error saving sweet spot settings:", error);
+      throw error;
     }
   }
   
   // Update target revenue
-  updateTargetRevenue(amount: number): void {
-    const settings = this.getSettings();
+  async updateTargetRevenue(amount: number): Promise<void> {
+    const settings = await this.getSettings();
     settings.targetRevenuePerMonth = amount;
-    this.saveSettings(settings);
+    await this.saveSettings(settings);
   }
   
   // Create a new entry
-  createEntry(entry: Omit<SweetSpotEntry, 'id'>): SweetSpotEntry {
-    const newEntry = { ...entry, id: uuidv4() };
-    const data = this.getData();
-    this.saveData([...data, newEntry]);
-    return newEntry;
+  async createEntry(entry: Omit<SweetSpotEntry, 'id'>): Promise<SweetSpotEntry> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(this.mapEntryToDbFormat(entry)),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return this.mapDbRowToEntry(data);
+    } catch (error) {
+      console.error("Error creating sweet spot entry:", error);
+      throw error;
+    }
   }
   
   // Get an entry by ID
-  getEntry(id: string): SweetSpotEntry | undefined {
-    return this.getData().find(entry => entry.id === id);
+  async getEntry(id: string): Promise<SweetSpotEntry | undefined> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) return undefined;
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return this.mapDbRowToEntry(data);
+    } catch (error) {
+      console.error("Error fetching sweet spot entry:", error);
+      return undefined;
+    }
   }
   
   // Update an entry
-  updateEntry(id: string, updates: Partial<SweetSpotEntry>): SweetSpotEntry | null {
-    const data = this.getData();
-    const index = data.findIndex(entry => entry.id === id);
-    
-    if (index === -1) return null;
-    
-    const updatedEntry = { ...data[index], ...updates };
-    data[index] = updatedEntry;
-    this.saveData(data);
-    return updatedEntry;
+  async updateEntry(id: string, updates: Partial<SweetSpotEntry>): Promise<SweetSpotEntry | null> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(this.mapEntryToDbFormat(updates as Omit<SweetSpotEntry, 'id'>)),
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return this.mapDbRowToEntry(data);
+    } catch (error) {
+      console.error("Error updating sweet spot entry:", error);
+      return null;
+    }
   }
   
   // Delete an entry
-  deleteEntry(id: string): boolean {
-    const data = this.getData();
-    const filteredData = data.filter(entry => entry.id !== id);
-    
-    if (filteredData.length === data.length) return false;
-    
-    this.saveData(filteredData);
-    return true;
+  async deleteEntry(id: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) return false;
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting sweet spot entry:", error);
+      return false;
+    }
   }
   
   // Calculate analysis based on current data
-  calculateAnalysis(data: SweetSpotEntry[]): SweetSpotAnalysis {
+  async calculateAnalysis(data?: SweetSpotEntry[]): Promise<SweetSpotAnalysis> {
     // Get current settings
-    const settings = this.getSettings();
+    const settings = await this.getSettings();
     const targetRevenuePerMonth = settings.targetRevenuePerMonth || this.defaultSettings.targetRevenuePerMonth;
+    // Get data if not provided
+    if (!data) {
+      data = await this.getData();
+    }
     
     if (!data || data.length === 0) {
       return {

@@ -15,36 +15,66 @@ export default function SweetSpotFormPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [editingEntry, setEditingEntry] = useState<SweetSpotEntry | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const isEditing = Boolean(id);
   
   useEffect(() => {
-    if (id) {
-      const entry = sweetSpotService.getEntry(id);
-      if (entry) {
-        setEditingEntry(entry);
-      } else {
-        toast.error(t("entryNotFound") || "Entry not found");
-        navigate("/sweet-spot");
+    const loadEntry = async () => {
+      if (id) {
+        try {
+          setIsLoading(true);
+          const entry = await sweetSpotService.getEntry(id);
+          if (entry) {
+            setEditingEntry(entry);
+          } else {
+            toast.error(t("entryNotFound") || "Entry not found");
+            navigate("/sweet-spot");
+          }
+        } catch (error) {
+          console.error('Error loading entry:', error);
+          toast.error("Failed to load entry");
+          navigate("/sweet-spot");
+        } finally {
+          setIsLoading(false);
+        }
       }
-    }
+    };
+    
+    loadEntry();
     
     document.title = isEditing ? 
       "Edit Sweet Spot Entry | ContentFlow" : 
       "Add Sweet Spot Entry | ContentFlow";
-  }, [id, navigate, t]);
+  }, [id, navigate, t, isEditing]);
   
   // Handle creating a new entry
-  const handleCreate = (entry: Omit<SweetSpotEntry, 'id'>) => {
-    sweetSpotService.createEntry(entry);
-    toast.success(t("entryAdded") || "Entry added successfully");
-    navigate("/sweet-spot");
+  const handleCreate = async (entry: Omit<SweetSpotEntry, 'id'>) => {
+    try {
+      setIsLoading(true);
+      await sweetSpotService.createEntry(entry);
+      toast.success(t("entryAdded") || "Entry added successfully");
+      navigate("/sweet-spot");
+    } catch (error) {
+      console.error('Error creating entry:', error);
+      toast.error("Failed to create entry");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Handle updating an entry
-  const handleUpdate = (id: string, updates: Partial<SweetSpotEntry>) => {
-    sweetSpotService.updateEntry(id, updates);
-    toast.success(t("entryUpdated") || "Entry updated successfully");
-    navigate("/sweet-spot");
+  const handleUpdate = async (id: string, updates: Partial<SweetSpotEntry>) => {
+    try {
+      setIsLoading(true);
+      await sweetSpotService.updateEntry(id, updates);
+      toast.success(t("entryUpdated") || "Entry updated successfully");
+      navigate("/sweet-spot");
+    } catch (error) {
+      console.error('Error updating entry:', error);
+      toast.error("Failed to update entry");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -75,13 +105,20 @@ export default function SweetSpotFormPage() {
         </div>
         
         <div className="bg-card border rounded-lg p-6 shadow-sm">
-          <SweetSpotForm
-            entry={editingEntry}
-            onSubmit={isEditing && editingEntry ? 
-              (updates) => handleUpdate(editingEntry.id, updates) : 
-              handleCreate}
-            onCancel={() => navigate("/sweet-spot")}
-          />
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Loading...</p>
+            </div>
+          ) : (
+            <SweetSpotForm
+              entry={editingEntry}
+              onSubmit={isEditing && editingEntry ? 
+                (updates) => handleUpdate(editingEntry.id, updates) : 
+                handleCreate}
+              onCancel={() => navigate("/sweet-spot")}
+            />
+          )}
         </div>
       </div>
     </Layout>
