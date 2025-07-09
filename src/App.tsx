@@ -1,6 +1,6 @@
 
 import { Route, Routes } from "react-router-dom";
-import { useUser } from "@stackframe/stack";
+import { useUser } from "./components/AuthProvider";
 import Dashboard from "./pages/Dashboard";
 import ContentBoardPage from "./pages/ContentBoardPage";
 import CalendarPage from "./pages/CalendarPage";

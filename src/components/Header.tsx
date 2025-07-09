@@ -1,6 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Search, Menu, X, Settings, LogOut } from "lucide-react";
@@ -15,7 +15,7 @@ interface HeaderProps {
 
 export function Header({ onSearch }: HeaderProps) {
   const navigate = useNavigate();
-  const user = useUser();
+  const { signOut } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,7 +23,7 @@ export function Header({ onSearch }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleLogout = () => {
-    user?.signOut();
+    signOut();
   };
 
   const handleSearch = () => {

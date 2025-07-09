@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { ContentItem, ContentStats, ContentStatus, ContentTag, HistoryEntry, Platform } from "@/types/content";
 import { toast } from "sonner";
-import { fetchContent, addContent, updateContent, deleteContent } from "@/services/contentService";
+import { fetchContent, createContent, updateContent, deleteContent } from "@/services/contentService";
 import { useCustomOptions } from './CustomOptionsContext';
 
 interface ContentContextType {
@@ -135,14 +135,14 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
       };
       
       // Add to database
-      const id = await addContent(newItem);
+      const createdItem = await createContent(newItem);
       
       // Update local state with the complete item from server
       const updatedItems = await fetchContent();
       setContentItems(updatedItems);
       
       toast.success("Content idea added successfully");
-      return id;
+      return createdItem.id;
     } catch (err) {
       toast.error("Failed to add content");
       throw err;
