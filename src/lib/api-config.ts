@@ -5,7 +5,7 @@ const API_CONFIG = {
     timeout: 10000
   },
   production: {
-    baseURL: 'https://kontenflow-api.railway.app/api', // Update this with your Railway URL
+    baseURL: 'https://kontenflow.vercel.app/api', // Backend sama domain dengan frontend
     timeout: 15000
   }
 };
