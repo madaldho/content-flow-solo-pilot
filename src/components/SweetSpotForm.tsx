@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { SweetSpotEntry } from "@/types/sweetSpot";
 import { useLanguage } from "@/context/LanguageContext";
@@ -54,7 +53,7 @@ export function SweetSpotForm({ entry, onSubmit, onCancel }: SweetSpotFormProps)
       niche: "KEY NICHE",
       account: "",
       keywords: "",
-      audience: 0,
+      audience: 1000,
       revenueStream: "Endorsement",
       pricing: "Rp",
     },
@@ -75,6 +74,7 @@ export function SweetSpotForm({ entry, onSubmit, onCancel }: SweetSpotFormProps)
   }, [entry, form]);
   
   const handleSubmit = (values: FormValues) => {
+    console.log('🐛 Debug: Form values:', values);
     onSubmit(values);
   };
   
@@ -157,7 +157,11 @@ export function SweetSpotForm({ entry, onSubmit, onCancel }: SweetSpotFormProps)
                     type="number" 
                     placeholder="Audience size"
                     {...field} 
-                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 0)}
+                    onChange={(e) => {
+                      const value = e.target.value ? parseInt(e.target.value) : 0;
+                      field.onChange(value);
+                    }}
+                    value={field.value || ''}
                   />
                 </FormControl>
                 <FormDescription>

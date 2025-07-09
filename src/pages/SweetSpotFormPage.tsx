@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { SweetSpotEntry } from "@/types/sweetSpot";
@@ -51,11 +50,13 @@ export default function SweetSpotFormPage() {
   const handleCreate = async (entry: Omit<SweetSpotEntry, 'id'>) => {
     try {
       setIsLoading(true);
-      await sweetSpotService.createEntry(entry);
+      console.log('🐛 Debug: Creating entry with data:', entry);
+      const result = await sweetSpotService.createEntry(entry);
+      console.log('🐛 Debug: Create result:', result);
       toast.success(t("entryAdded") || "Entry added successfully");
       navigate("/sweet-spot");
     } catch (error) {
-      console.error('Error creating entry:', error);
+      console.error('❌ Error creating entry:', error);
       toast.error("Failed to create entry");
     } finally {
       setIsLoading(false);
