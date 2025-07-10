@@ -45,13 +45,22 @@ export default function SweetSpotFormPage() {
   
   // Handle creating a new entry
   const handleCreate = async (entry: Omit<SweetSpotEntry, 'id'>) => {
+    console.log('🔥 Form handleCreate called with:', entry);
     try {
-      await sweetSpotService.createEntry(entry);
+      console.log('🔥 Calling sweetSpotService.createEntry...');
+      const result = await sweetSpotService.createEntry(entry);
+      console.log('🔥 Service returned:', result);
+      
       toast.success(t("entryAdded") || "Entry added successfully");
-      navigate("/sweet-spot");
+      console.log('🔥 Success toast shown, navigating...');
+      
+      // Add small delay to see the toast
+      setTimeout(() => {
+        navigate("/sweet-spot");
+      }, 1000);
     } catch (error) {
-      console.error("Error creating entry:", error);
-      toast.error(t("errorCreatingEntry") || "Error creating entry");
+      console.error("❌ Error creating entry:", error);
+      toast.error(t("errorCreatingEntry") || "Error creating entry. Please try again.");
     }
   };
   
