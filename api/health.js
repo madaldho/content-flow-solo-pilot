@@ -19,7 +19,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Test database connection
     await pool.query('SELECT 1');
     
     return res.status(200).json({ 
@@ -29,7 +28,7 @@ module.exports = async (req, res) => {
       database: 'Connected'
     });
   } catch (error) {
-    console.error('❌ Database Error:', error);
+    console.error('Database Error:', error);
     return res.status(500).json({ 
       status: 'ERROR',
       message: 'Database connection failed',
