@@ -27,20 +27,44 @@ export default function SweetSpotAnalysisPage() {
   const [analysis, setAnalysis] = useState<SweetSpotAnalysis | null>(null);
   const [showExampleData, setShowExampleData] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [exampleAnalysis, setExampleAnalysis] = useState<SweetSpotAnalysis | null>(null);
   const { t } = useLanguage();
   const navigate = useNavigate();
   
   // Load data and calculate analysis
-  const loadData = () => {
-    const data = sweetSpotService.getData();
-    setEntries(data);
-    setAnalysis(sweetSpotService.calculateAnalysis(data));
+  const loadData = async () => {
+    try {
+      const data = await sweetSpotService.getData();
+      setEntries(data);
+      const analysisResult = await sweetSpotService.calculateAnalysis(data);
+      setAnalysis(analysisResult);
+    } catch (error) {
+      console.error("Error loading data:", error);
+      toast.error(t("errorLoadingData") || "Error loading data");
+    }
   };
   
   useEffect(() => {
-    loadData();
+    const loadDataOnMount = async () => {
+      try {
+        const data = await sweetSpotService.getData();
+        setEntries(data);
+        const analysisResult = await sweetSpotService.calculateAnalysis(data);
+        setAnalysis(analysisResult);
+        
+        // Load example data
+        const exampleData = sweetSpotService.getExampleData();
+        const exampleAnalysisResult = await sweetSpotService.calculateAnalysis(exampleData);
+        setExampleAnalysis(exampleAnalysisResult);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast.error(t("errorLoadingData") || "Error loading data");
+      }
+    };
+    
+    loadDataOnMount();
     document.title = "Sweet Spot Analysis | ContentFlow";
-  }, []);
+  }, [t]);
   
   // Toggle example data visibility
   const toggleExampleData = () => {
@@ -63,18 +87,19 @@ export default function SweetSpotAnalysisPage() {
   };
   
   // Handle deleting an entry
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteConfirmId) {
-      sweetSpotService.deleteEntry(deleteConfirmId);
-      toast.success(t("entryDeleted") || "Entry deleted successfully");
-      loadData();
-      setDeleteConfirmId(null);
+      try {
+        await sweetSpotService.deleteEntry(deleteConfirmId);
+        toast.success(t("entryDeleted") || "Entry deleted successfully");
+        await loadData();
+        setDeleteConfirmId(null);
+      } catch (error) {
+        console.error("Error deleting entry:", error);
+        toast.error(t("errorDeletingEntry") || "Error deleting entry");
+      }
     }
   };
-  
-  // Get example data for reference
-  const exampleData = sweetSpotService.getExampleData();
-  const exampleAnalysis = sweetSpotService.calculateAnalysis(exampleData);
   
   return (
     <Layout>

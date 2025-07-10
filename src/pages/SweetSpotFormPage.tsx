@@ -18,33 +18,53 @@ export default function SweetSpotFormPage() {
   const isEditing = Boolean(id);
   
   useEffect(() => {
-    if (id) {
-      const entry = sweetSpotService.getEntry(id);
-      if (entry) {
-        setEditingEntry(entry);
-      } else {
-        toast.error(t("entryNotFound") || "Entry not found");
-        navigate("/sweet-spot");
+    const loadEntry = async () => {
+      if (id) {
+        try {
+          const entry = await sweetSpotService.getEntry(id);
+          if (entry) {
+            setEditingEntry(entry);
+          } else {
+            toast.error(t("entryNotFound") || "Entry not found");
+            navigate("/sweet-spot");
+          }
+        } catch (error) {
+          console.error("Error loading entry:", error);
+          toast.error(t("entryNotFound") || "Entry not found");
+          navigate("/sweet-spot");
+        }
       }
-    }
+    };
+    
+    loadEntry();
     
     document.title = isEditing ? 
       "Edit Sweet Spot Entry | ContentFlow" : 
       "Add Sweet Spot Entry | ContentFlow";
-  }, [id, navigate, t]);
+  }, [id, navigate, t, isEditing]);
   
   // Handle creating a new entry
-  const handleCreate = (entry: Omit<SweetSpotEntry, 'id'>) => {
-    sweetSpotService.createEntry(entry);
-    toast.success(t("entryAdded") || "Entry added successfully");
-    navigate("/sweet-spot");
+  const handleCreate = async (entry: Omit<SweetSpotEntry, 'id'>) => {
+    try {
+      await sweetSpotService.createEntry(entry);
+      toast.success(t("entryAdded") || "Entry added successfully");
+      navigate("/sweet-spot");
+    } catch (error) {
+      console.error("Error creating entry:", error);
+      toast.error(t("errorCreatingEntry") || "Error creating entry");
+    }
   };
   
   // Handle updating an entry
-  const handleUpdate = (id: string, updates: Partial<SweetSpotEntry>) => {
-    sweetSpotService.updateEntry(id, updates);
-    toast.success(t("entryUpdated") || "Entry updated successfully");
-    navigate("/sweet-spot");
+  const handleUpdate = async (id: string, updates: Partial<SweetSpotEntry>) => {
+    try {
+      await sweetSpotService.updateEntry(id, updates);
+      toast.success(t("entryUpdated") || "Entry updated successfully");
+      navigate("/sweet-spot");
+    } catch (error) {
+      console.error("Error updating entry:", error);
+      toast.error(t("errorUpdatingEntry") || "Error updating entry");
+    }
   };
   
   return (
