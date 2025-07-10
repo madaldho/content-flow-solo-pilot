@@ -20,19 +20,21 @@ module.exports = async (req, res) => {
   }
 
   const { url, method } = req;
+  console.log('🔥 API Request:', { url, method, body: req.body });
   
   try {
     // Health check
-    if (url === '/api/health') {
+    if (url === '/api/health' || url === '/health') {
       return res.status(200).json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        message: 'KontenFlow API is running on Vercel Functions'
+        message: 'KontenFlow API is running on Vercel Functions',
+        database: process.env.DATABASE_URL ? 'Connected' : 'Not configured'
       });
     }
     
     // SweetSpot Entries
-    if (url === '/api/sweetspot/entries') {
+    if (url === '/api/sweetspot/entries' || url === '/sweetspot/entries') {
       if (method === 'GET') {
         const result = await pool.query('SELECT * FROM sweet_spot_entries WHERE user_id = $1 ORDER BY created_at DESC', ['default-user']);
         return res.status(200).json(result.rows);
@@ -52,7 +54,7 @@ module.exports = async (req, res) => {
     }
     
     // SweetSpot Entry by ID
-    if (url.startsWith('/api/sweetspot/entries/')) {
+    if (url.startsWith('/api/sweetspot/entries/') || url.startsWith('/sweetspot/entries/')) {
       const id = url.split('/').pop();
       
       if (method === 'GET') {
@@ -93,7 +95,7 @@ module.exports = async (req, res) => {
     }
     
     // SweetSpot Settings
-    if (url === '/api/sweetspot/settings') {
+    if (url === '/api/sweetspot/settings' || url === '/sweetspot/settings') {
       if (method === 'GET') {
         const result = await pool.query('SELECT * FROM sweet_spot_settings WHERE user_id = $1 LIMIT 1', ['default-user']);
         
@@ -131,6 +133,7 @@ module.exports = async (req, res) => {
     }
     
     // Default response
+    console.log('❌ API endpoint not found:', { url, method });
     res.status(404).json({ error: 'API endpoint not found', url, method });
     
   } catch (error) {

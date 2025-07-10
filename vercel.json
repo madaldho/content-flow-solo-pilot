@@ -1,25 +1,13 @@
 {
   "functions": {
-    "api/**/*.js": {
-      "runtime": "@vercel/node"
+    "api/index.js": {
+      "runtime": "nodejs18.x"
     }
   },
   "rewrites": [
     {
-      "source": "/api/health",
-      "destination": "/api/health.js"
-    },
-    {
-      "source": "/api/sweetspot/entries",
-      "destination": "/api/sweetspot/entries.js"
-    },
-    {
-      "source": "/api/sweetspot/entries/(.*)",
-      "destination": "/api/sweetspot/entries/[id].js?id=$1"
-    },
-    {
-      "source": "/api/sweetspot/settings",
-      "destination": "/api/sweetspot/settings.js"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     }
   ]
 } 
