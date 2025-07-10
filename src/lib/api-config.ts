@@ -5,7 +5,7 @@ const API_CONFIG = {
     timeout: 10000
   },
   production: {
-    baseURL: 'https://kontenflow.vercel.app/api', // Backend sama domain dengan frontend
+    baseURL: 'https://kontenflow.vercel.app/api', // Vercel serverless functions
     timeout: 15000
   }
 };

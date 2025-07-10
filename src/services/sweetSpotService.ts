@@ -79,7 +79,7 @@ class SweetSpotService {
   // Get all sweet spot entries from database
   async getData(): Promise<SweetSpotEntry[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries`);
+      const response = await fetch(`${API_BASE_URL}/entries`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -145,7 +145,7 @@ class SweetSpotService {
   // Create a new entry
   async createEntry(entry: Omit<SweetSpotEntry, 'id'>): Promise<SweetSpotEntry> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/sweetspot/entries`, {
+      const response = await fetch(`${API_BASE_URL}/entries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

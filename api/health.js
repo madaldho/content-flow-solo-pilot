@@ -7,7 +7,7 @@ const pool = new Pool({
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
   if (req.method === 'OPTIONS') {
@@ -19,13 +19,21 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // Test database connection
+    await pool.query('SELECT 1');
+    
     return res.status(200).json({ 
       status: 'OK', 
       timestamp: new Date().toISOString(),
       message: 'KontenFlow API is running on Vercel Functions',
-      database: process.env.DATABASE_URL ? 'Connected' : 'Not configured'
+      database: 'Connected'
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('❌ Database Error:', error);
+    return res.status(500).json({ 
+      status: 'ERROR',
+      message: 'Database connection failed',
+      error: error.message
+    });
   }
 };
