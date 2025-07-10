@@ -199,7 +199,7 @@ export default function SweetSpotAnalysisPage() {
               {t("exampleData") || "Example Data"}
             </h2>
             <SweetSpotTable 
-              entries={exampleData} 
+              entries={sweetSpotService.getExampleData()} 
               isExample={true}
             />
           </Card>

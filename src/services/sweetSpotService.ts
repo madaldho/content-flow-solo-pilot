@@ -145,22 +145,34 @@ class SweetSpotService {
   // Create a new entry
   async createEntry(entry: Omit<SweetSpotEntry, 'id'>): Promise<SweetSpotEntry> {
     try {
+      console.log('🔥 Creating entry with data:', entry);
+      const dbEntry = this.mapEntryToDbFormat(entry);
+      console.log('🔥 Mapped to DB format:', dbEntry);
+      console.log('🔥 API URL:', `${API_BASE_URL}/sweetspot-entries`);
+      
       const response = await fetch(`${API_BASE_URL}/sweetspot-entries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(this.mapEntryToDbFormat(entry)),
+        body: JSON.stringify(dbEntry),
       });
       
+      console.log('🔥 Response status:', response.status);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🔥 Response error:', errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      return this.mapDbRowToEntry(data);
+      console.log('🔥 Response data:', data);
+      const result = this.mapDbRowToEntry(data);
+      console.log('🔥 Mapped result:', result);
+      return result;
     } catch (error) {
-      console.error("Error creating sweet spot entry:", error);
+      console.error("❌ Error creating sweet spot entry:", error);
       throw error;
     }
   }
